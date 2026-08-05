@@ -1,0 +1,20 @@
+[tool.black]
+line-length = 88
+target-version = ["py314"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "*/migrations/*",
+    "manage.py",
+    "*/tests/*",
+]
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+skip_covered = true
