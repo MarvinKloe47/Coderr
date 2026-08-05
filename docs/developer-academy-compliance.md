@@ -10,11 +10,11 @@ This matrix uses the available PDF as the binding Developer Academy checklist.
 | ----------- | ------ | -------- | ----- | --------------- |
 | All endpoints are implemented according to documentation | Compliant | Endpoint paths, methods, serializers, permissions and tests were compared against `docs/requirements-matrix.md` and app URL files. | `core/urls.py`, `auth_app/api/urls.py`, `offers_app/api/urls.py`, `orders_app/api/urls.py`, `reviews_app/api/urls.py`, `docs/requirements-matrix.md` | Keep endpoint mapping below updated after changes. |
 | Test coverage is at least 95 percent | Compliant | `coverage report --fail-under=95 -m` passed with 96 percent coverage. | `pyproject.toml`, `.github/workflows/backend-quality.yml`, app tests | None. |
-| One function or method has one main responsibility | Partially compliant | Code scan found focused functions overall, but a few methods/tests exceed 14 lines and need explicit review or cleanup. | `orders_app/api/serializers.py`, app test files | Review line-length exceptions and refactor where useful. |
-| Functions and methods have a maximum of 14 lines by default | Partially compliant | AST scan found test helpers/tests above 14 lines and `OrderSerializer.create()` at 15 lines. | `orders_app/api/serializers.py`, `auth_app/tests/`, `offers_app/tests/`, `orders_app/tests/`, `reviews_app/tests/` | Refactor useful production-code case; document acceptable test exceptions. |
-| No commented-out code or `print()` commands remain | Partially compliant | `git grep` found no application debug prints; README has a documented one-line key-generation command; `core/urls.py` still contains Django starter comments. | `README.md`, `core/urls.py` | Remove boilerplate commented examples from `core/urls.py`; keep README command documented. |
+| One function or method has one main responsibility | Compliant | Production logic is split by Models, Serializers, Views and Permissions; test setup helpers now express one setup task each. | app modules and app tests | Verified with tests and AST method scan. |
+| Functions and methods have a maximum of 14 lines by default | Compliant | Final AST scan returned `no methods over 14 lines`. | all tracked Python files except migrations | Verified with AST scan command below. |
+| No commented-out code or `print()` commands remain | Compliant | Debug scan found no app `print()`, `pprint()`, `breakpoint()`, `TODO`, `FIXME`, `XXX` or commented-out implementation. The only `print(` match is the documented README command for generating a local Django secret key. | Python files, `README.md`, `core/urls.py` | No action required. |
 | Code is PEP8 compliant | Compliant | `black --check .`, `isort --check-only .` and `flake8 .` passed. | `pyproject.toml`, `setup.cfg`, Python files | None. |
-| Code is documented/commented | Partially compliant | README and walkthrough exist; code has limited docstrings. DA checklist asks for documented/commented code, so important custom logic needs concise docstrings. | `core/settings.py`, app serializers, views, permissions, filters | Add meaningful English docstrings for custom logic. |
+| Code is documented/commented | Compliant | Concise English docstrings document env helpers, custom permissions, serializer validations, overridden create/update methods, dynamic querysets and aggregate/count views. | `core/settings.py`, `core/api_views.py`, app serializers, views, permissions, filters | None. |
 | README is meaningful and explains how to start the project | Compliant | README contains project description, setup, env, migrations, superuser, server, tests, endpoints, roles and security notes. | `README.md` | None. |
 | README is written in English | Compliant | README content is English. | `README.md` | None. |
 | Backend is uploaded in its own repository without frontend | Compliant | Tracked files contain backend code only; frontend reference remains ignored. | `git ls-files`, `.gitignore`, `docs/frontend-reference/` | None. |
@@ -67,24 +67,39 @@ This matrix uses the available PDF as the binding Developer Academy checklist.
 | Review detail/update/delete | `GET/PATCH/DELETE /api/reviews/<id>/` | `ReviewViewSet` | `ReviewSerializer` | `IsAuthenticated`, `IsCustomerOrReadOnly`, `IsReviewerOrReadOnly` | `Review` | `reviews_app/tests/test_review_api.py` |
 | Base info | `GET /api/base-info/` | `BaseInfoView` | none | `AllowAny` | `Review`, `Offer`, `User` | `core/tests/test_base_info_api.py` |
 
-## Current Method-Length Findings
+## Verification Commands
 
-AST scan before cleanup found these own functions/methods above 14 physical
-lines:
+These commands were used for the final compliance review:
 
-- `auth_app/tests/test_auth_api.py:test_register_customer_returns_token_payload` - 21 lines.
-- `auth_app/tests/test_auth_api.py:test_register_rejects_password_mismatch` - 15 lines.
-- `auth_app/tests/test_profile_api.py:setUp` - 17 lines.
-- `auth_app/tests/test_security_regressions.py:test_registration_response_excludes_password_fields` - 16 lines.
-- `auth_app/tests/test_security_regressions.py:test_failed_login_response_excludes_token` - 18 lines.
-- `auth_app/tests/test_security_regressions.py:test_profile_response_excludes_password_hash_and_admin_flags` - 15 lines.
-- `core/tests/test_base_info_api.py:test_base_info_returns_frontend_counts` - 27 lines.
-- `offers_app/tests/test_offer_api.py:offer_payload` - 31 lines.
-- `offers_app/tests/test_offer_api.py:test_owner_can_update_offer_details` - 15 lines.
-- `orders_app/api/serializers.py:create` - 15 lines.
-- `orders_app/tests/test_order_api.py:setUp` - 25 lines.
-- `orders_app/tests/test_order_api.py:test_order_count_endpoints_return_counts` - 22 lines.
-- `reviews_app/tests/test_review_api.py:test_customer_cannot_review_self_when_business` - 16 lines.
-- `reviews_app/tests/test_review_api.py:test_customer_cannot_review_same_business_twice` - 20 lines.
-- `reviews_app/tests/test_review_api.py:test_filters_reviews_by_business_user` - 16 lines.
-- `reviews_app/tests/test_review_api.py:test_reviewer_can_update_review` - 17 lines.
+```bash
+python manage.py check
+python manage.py check --deploy
+python manage.py makemigrations --check
+python manage.py test --verbosity 2
+coverage erase
+coverage run manage.py test
+coverage report --fail-under=95 -m
+black --check .
+isort --check-only .
+flake8 .
+git grep -n -I "print("
+git grep -n -I "pprint("
+git grep -n -I "breakpoint("
+git grep -n -I "TODO"
+git grep -n -I "FIXME"
+git grep -n -I "XXX"
+git grep -n -I 'fields = "__all__"'
+git status
+git diff
+git diff main...HEAD
+```
+
+## Method-Length Result
+
+Final AST scan result:
+
+```text
+no methods over 14 lines
+```
+
+No remaining method-length exception is required.
