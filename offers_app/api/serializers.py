@@ -34,12 +34,8 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
 class OfferSerializer(serializers.ModelSerializer):
     details = OfferDetailSerializer(many=True)
-    min_price = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        read_only=True,
-    )
-    min_delivery_time = serializers.IntegerField(read_only=True)
+    min_price = serializers.SerializerMethodField()
+    min_delivery_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -63,6 +59,20 @@ class OfferSerializer(serializers.ModelSerializer):
         if sorted(types) != sorted(expected):
             raise serializers.ValidationError("Provide basic, standard and premium.")
         return value
+
+    def get_min_price(self, obj):
+        value = getattr(obj, "min_price", None)
+        if value is not None:
+            return value
+        prices = [detail.price for detail in obj.details.all()]
+        return min(prices) if prices else None
+
+    def get_min_delivery_time(self, obj):
+        value = getattr(obj, "min_delivery_time", None)
+        if value is not None:
+            return value
+        times = [detail.delivery_time_in_days for detail in obj.details.all()]
+        return min(times) if times else None
 
     @transaction.atomic
     def create(self, validated_data):
