@@ -3,17 +3,16 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 
-class AuthResponseMixin:
-    def auth_payload(self, user):
-        token, _ = Token.objects.get_or_create(user=user)
-        return {
-            "token": token.key,
-            "user_id": user.pk,
-            "username": user.username,
-        }
+def build_auth_payload(user):
+    token, _ = Token.objects.get_or_create(user=user)
+    return {
+        "token": token.key,
+        "user_id": user.pk,
+        "username": user.username,
+    }
 
 
-class RegistrationSerializer(AuthResponseMixin, serializers.ModelSerializer):
+class RegistrationSerializer(serializers.ModelSerializer):
     repeated_password = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
 
@@ -49,10 +48,10 @@ class RegistrationSerializer(AuthResponseMixin, serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
-        return self.auth_payload(instance)
+        return build_auth_payload(instance)
 
 
-class LoginSerializer(AuthResponseMixin, serializers.Serializer):
+class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
@@ -68,7 +67,7 @@ class LoginSerializer(AuthResponseMixin, serializers.Serializer):
         return attrs
 
     def to_representation(self, instance):
-        return self.auth_payload(instance["user"])
+        return build_auth_payload(instance["user"])
 
 
 class ProfileSerializer(serializers.ModelSerializer):
