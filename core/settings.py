@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'auth_app',
     'offers_app',
+    'orders_app',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
