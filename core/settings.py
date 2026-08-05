@@ -27,12 +27,14 @@ SECRET_KEY = os.environ.get(
 )
 DEBUG = env_bool("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost")
+AUTH_USER_MODEL = 'auth_app.User'
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'corsheaders',
+    'auth_app',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
