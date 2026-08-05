@@ -5,17 +5,29 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 
+def registration_payload():
+    return {
+        "username": "security_customer",
+        "email": "security-customer@example.com",
+        "password": "test-password",
+        "repeated_password": "test-password",
+        "type": "customer",
+    }
+
+
+def create_user(username, role):
+    return get_user_model().objects.create_user(
+        username=username,
+        password="test-password",
+        type=role,
+    )
+
+
 class SecurityRegressionTests(APITestCase):
     def test_registration_response_excludes_password_fields(self):
         response = self.client.post(
             reverse("registration"),
-            {
-                "username": "security_customer",
-                "email": "security-customer@example.com",
-                "password": "test-password",
-                "repeated_password": "test-password",
-                "type": "customer",
-            },
+            registration_payload(),
             format="json",
         )
 
@@ -24,11 +36,7 @@ class SecurityRegressionTests(APITestCase):
         self.assertNotIn("repeated_password", response.data)
 
     def test_failed_login_response_excludes_token(self):
-        get_user_model().objects.create_user(
-            username="security_business",
-            password="test-password",
-            type="business",
-        )
+        create_user("security_business", "business")
 
         response = self.client.post(
             reverse("login"),
@@ -43,12 +51,7 @@ class SecurityRegressionTests(APITestCase):
         self.assertNotIn("token", response.data)
 
     def test_profile_response_excludes_password_hash_and_admin_flags(self):
-        user = get_user_model().objects.create_user(
-            username="profile_customer",
-            email="profile-customer@example.com",
-            password="test-password",
-            type="customer",
-        )
+        user = create_user("profile_customer", "customer")
         self.client.force_authenticate(user)
 
         response = self.client.get(reverse("profile-detail", args=[user.pk]))
@@ -59,11 +62,7 @@ class SecurityRegressionTests(APITestCase):
         self.assertNotIn("is_superuser", response.data)
 
     def test_profile_requires_authentication(self):
-        user = get_user_model().objects.create_user(
-            username="private_customer",
-            password="test-password",
-            type="customer",
-        )
+        user = create_user("private_customer", "customer")
 
         response = self.client.get(reverse("profile-detail", args=[user.pk]))
 

@@ -6,6 +6,27 @@ from rest_framework.test import APITestCase
 from reviews_app.models import Review
 
 
+def review_payload(business_user, **overrides):
+    payload = {
+        "business_user": business_user.pk,
+        "description": "Great work.",
+        "rating": 5,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def create_review(reviewer, business_user, **overrides):
+    data = {
+        "reviewer": reviewer,
+        "business_user": business_user,
+        "description": "Great",
+        "rating": 5,
+    }
+    data.update(overrides)
+    return Review.objects.create(**data)
+
+
 class ReviewApiTests(APITestCase):
     def setUp(self):
         users = get_user_model().objects
@@ -23,11 +44,7 @@ class ReviewApiTests(APITestCase):
         self.client.force_authenticate(self.customer)
         response = self.client.post(
             reverse("review-list"),
-            {
-                "business_user": self.business.pk,
-                "description": "Great work.",
-                "rating": 5,
-            },
+            review_payload(self.business),
             format="json",
         )
 
@@ -38,11 +55,7 @@ class ReviewApiTests(APITestCase):
         self.client.force_authenticate(self.business)
         response = self.client.post(
             reverse("review-list"),
-            {
-                "business_user": self.business.pk,
-                "description": "Nope.",
-                "rating": 5,
-            },
+            review_payload(self.business, description="Nope."),
             format="json",
         )
 
@@ -52,11 +65,7 @@ class ReviewApiTests(APITestCase):
         self.client.force_authenticate(self.customer)
         response = self.client.post(
             reverse("review-list"),
-            {
-                "business_user": self.other.pk,
-                "description": "Wrong target.",
-                "rating": 5,
-            },
+            review_payload(self.other, description="Wrong target."),
             format="json",
         )
 
@@ -69,32 +78,19 @@ class ReviewApiTests(APITestCase):
 
         response = self.client.post(
             reverse("review-list"),
-            {
-                "business_user": self.business.pk,
-                "description": "Self review.",
-                "rating": 5,
-            },
+            review_payload(self.business, description="Self review."),
             format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_customer_cannot_review_same_business_twice(self):
-        Review.objects.create(
-            reviewer=self.customer,
-            business_user=self.business,
-            description="Great",
-            rating=5,
-        )
+        create_review(self.customer, self.business)
         self.client.force_authenticate(self.customer)
 
         response = self.client.post(
             reverse("review-list"),
-            {
-                "business_user": self.business.pk,
-                "description": "Again",
-                "rating": 4,
-            },
+            review_payload(self.business, description="Again", rating=4),
             format="json",
         )
 
@@ -104,23 +100,14 @@ class ReviewApiTests(APITestCase):
         self.client.force_authenticate(self.customer)
         response = self.client.post(
             reverse("review-list"),
-            {
-                "business_user": self.business.pk,
-                "description": "Too much",
-                "rating": 6,
-            },
+            review_payload(self.business, description="Too much", rating=6),
             format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_filters_reviews_by_business_user(self):
-        Review.objects.create(
-            reviewer=self.customer,
-            business_user=self.business,
-            description="Great",
-            rating=5,
-        )
+        create_review(self.customer, self.business)
         self.client.force_authenticate(self.other)
 
         response = self.client.get(
@@ -132,12 +119,7 @@ class ReviewApiTests(APITestCase):
         self.assertEqual(len(response.data), 1)
 
     def test_reviewer_can_update_review(self):
-        review = Review.objects.create(
-            reviewer=self.customer,
-            business_user=self.business,
-            description="Great",
-            rating=5,
-        )
+        review = create_review(self.customer, self.business)
         self.client.force_authenticate(self.customer)
 
         response = self.client.patch(

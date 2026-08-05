@@ -5,37 +5,39 @@ from rest_framework.test import APITestCase
 
 from offers_app.models import Offer, OfferDetail
 
+OFFER_DETAILS = [
+    {
+        "title": "Basic Logo",
+        "revisions": 1,
+        "delivery_time_in_days": 3,
+        "price": "99.00",
+        "features": ["Logo"],
+        "offer_type": "basic",
+    },
+    {
+        "title": "Standard Logo",
+        "revisions": 3,
+        "delivery_time_in_days": 5,
+        "price": "199.00",
+        "features": ["Logo", "Colors"],
+        "offer_type": "standard",
+    },
+    {
+        "title": "Premium Logo",
+        "revisions": -1,
+        "delivery_time_in_days": 7,
+        "price": "299.00",
+        "features": ["Logo", "Colors", "Brand guide"],
+        "offer_type": "premium",
+    },
+]
+
 
 def offer_payload(title="Logo Design"):
     return {
         "title": title,
         "description": "A polished visual identity package.",
-        "details": [
-            {
-                "title": "Basic Logo",
-                "revisions": 1,
-                "delivery_time_in_days": 3,
-                "price": "99.00",
-                "features": ["Logo"],
-                "offer_type": "basic",
-            },
-            {
-                "title": "Standard Logo",
-                "revisions": 3,
-                "delivery_time_in_days": 5,
-                "price": "199.00",
-                "features": ["Logo", "Colors"],
-                "offer_type": "standard",
-            },
-            {
-                "title": "Premium Logo",
-                "revisions": -1,
-                "delivery_time_in_days": 7,
-                "price": "299.00",
-                "features": ["Logo", "Colors", "Brand guide"],
-                "offer_type": "premium",
-            },
-        ],
+        "details": [detail.copy() for detail in OFFER_DETAILS],
     }
 
 
@@ -145,11 +147,8 @@ class OfferApiTests(APITestCase):
         payload["details"][0]["price"] = "149.00"
         self.client.force_authenticate(self.business)
 
-        response = self.client.patch(
-            reverse("offer-detail", args=[offer.pk]),
-            payload,
-            format="json",
-        )
+        url = reverse("offer-detail", args=[offer.pk])
+        response = self.client.patch(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["title"], "Updated")

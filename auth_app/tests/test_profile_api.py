@@ -4,22 +4,28 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 
+def create_user(username, role, **fields):
+    return get_user_model().objects.create_user(
+        username,
+        password="test-password",
+        type=role,
+        **fields,
+    )
+
+
 class ProfileApiTests(APITestCase):
     def setUp(self):
-        users = get_user_model().objects
-        self.business = users.create_user(
+        self.business = create_user(
             "test_business",
+            "business",
             email="business@example.com",
-            password="test-password",
-            type="business",
             first_name="TestBusiness",
             location="Berlin",
         )
-        self.customer = users.create_user(
+        self.customer = create_user(
             "test_customer",
+            "customer",
             email="customer@example.com",
-            password="test-password",
-            type="customer",
             first_name="TestCustomer",
         )
 

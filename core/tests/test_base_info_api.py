@@ -7,26 +7,21 @@ from offers_app.models import Offer
 from reviews_app.models import Review
 
 
+def create_base_info_data():
+    users = get_user_model().objects
+    business = users.create_user(
+        "test_business", password="test-password", type="business"
+    )
+    customer = users.create_user(
+        "test_customer", password="test-password", type="customer"
+    )
+    Offer.objects.create(user=business, title="Logo", description="Logo design")
+    Review.objects.create(reviewer=customer, business_user=business, rating=5)
+
+
 class BaseInfoApiTests(APITestCase):
     def test_base_info_returns_frontend_counts(self):
-        users = get_user_model().objects
-        business = users.create_user(
-            "test_business", password="test-password", type="business"
-        )
-        customer = users.create_user(
-            "test_customer", password="test-password", type="customer"
-        )
-        Offer.objects.create(
-            user=business,
-            title="Logo",
-            description="Logo design",
-        )
-        Review.objects.create(
-            reviewer=customer,
-            business_user=business,
-            description="Great",
-            rating=5,
-        )
+        create_base_info_data()
 
         response = self.client.get(reverse("base-info"))
 

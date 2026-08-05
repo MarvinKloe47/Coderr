@@ -7,23 +7,18 @@ from offers_app.models import Offer, OfferDetail
 from orders_app.models import Order
 
 
+def create_user(username, role):
+    return get_user_model().objects.create_user(
+        username, password="test-password", type=role
+    )
+
+
 class OrderApiTests(APITestCase):
     def setUp(self):
-        users = get_user_model().objects
-        self.business = users.create_user(
-            "test_business", password="test-password", type="business"
-        )
-        self.customer = users.create_user(
-            "test_customer", password="test-password", type="customer"
-        )
-        self.other = users.create_user(
-            "other_customer", password="test-password", type="customer"
-        )
-        self.offer = Offer.objects.create(
-            user=self.business,
-            title="Logo",
-            description="Logo design",
-        )
+        self.business = create_user("test_business", "business")
+        self.customer = create_user("test_customer", "customer")
+        self.other = create_user("other_customer", "customer")
+        self.offer = Offer.objects.create(user=self.business, title="Logo")
         self.detail = OfferDetail.objects.create(
             offer=self.offer,
             title="Basic Logo",
@@ -45,6 +40,13 @@ class OrderApiTests(APITestCase):
             price=self.detail.price,
             features=self.detail.features,
         )
+
+    def create_completed_order(self):
+        order = self.create_order()
+        order.status = Order.Status.COMPLETED
+        order.title = "Done"
+        order.save()
+        return order
 
     def test_customer_can_create_order_from_offer_detail(self):
         self.client.force_authenticate(self.customer)
@@ -146,17 +148,7 @@ class OrderApiTests(APITestCase):
 
     def test_order_count_endpoints_return_counts(self):
         self.create_order()
-        Order.objects.create(
-            customer_user=self.customer,
-            business_user=self.business,
-            offer_detail=self.detail,
-            title="Done",
-            revisions=1,
-            delivery_time_in_days=3,
-            price="99.00",
-            features=["Logo"],
-            status=Order.Status.COMPLETED,
-        )
+        self.create_completed_order()
         self.client.force_authenticate(self.customer)
 
         open_response = self.client.get(reverse("order-count", args=[self.business.pk]))
