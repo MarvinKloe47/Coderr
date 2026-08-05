@@ -1,20 +1,54 @@
-.env
+# Environment and secrets
+.env*
+!.env.example
+*.secret
+secrets/
+credentials/
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.ovpn
+*.crt
+*.cer
+
+# Databases and backups
+db.sqlite3
+*.sqlite3
+*.db
+*.bak
+*.backup
+*.dump
+
+# Runtime and logs
+*.log
+logs/
+media/
+staticfiles/
+
+# Python and virtual environments
 .venv/
 venv/
 env/
 __pycache__/
 *.py[cod]
-*.sqlite3
-db.sqlite3
+
+# Coverage and caches
 .coverage
+coverage.xml
 htmlcov/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Local editor settings
 .idea/
 .vscode/
-*.log
-media/
-staticfiles/
+
+# Reference materials are reviewed locally but not submitted with the backend.
 docs/*
 !docs/requirements-matrix.md
