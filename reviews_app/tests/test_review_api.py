@@ -48,6 +48,37 @@ class ReviewApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_customer_cannot_review_customer(self):
+        self.client.force_authenticate(self.customer)
+        response = self.client.post(
+            reverse("review-list"),
+            {
+                "business_user": self.other.pk,
+                "description": "Wrong target.",
+                "rating": 5,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_customer_cannot_review_self_when_business(self):
+        self.business.type = "business"
+        self.business.save()
+        self.client.force_authenticate(self.business)
+
+        response = self.client.post(
+            reverse("review-list"),
+            {
+                "business_user": self.business.pk,
+                "description": "Self review.",
+                "rating": 5,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_customer_cannot_review_same_business_twice(self):
         Review.objects.create(
             reviewer=self.customer,

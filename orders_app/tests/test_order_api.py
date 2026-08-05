@@ -68,6 +68,29 @@ class OrderApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_rejects_unknown_offer_detail(self):
+        self.client.force_authenticate(self.customer)
+
+        response = self.client.post(
+            reverse("order-list"),
+            {"offer_detail_id": 9999},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_rejects_invalid_status_value(self):
+        order = self.create_order()
+        self.client.force_authenticate(self.business)
+
+        response = self.client.patch(
+            reverse("order-detail", args=[order.pk]),
+            {"status": "not-a-status"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_order_snapshot_stays_after_offer_detail_changes(self):
         order = self.create_order()
         self.detail.title = "Changed"

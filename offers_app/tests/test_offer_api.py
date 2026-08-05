@@ -82,6 +82,26 @@ class OfferApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_rejects_incomplete_offer_details(self):
+        payload = offer_payload()
+        payload["details"] = payload["details"][:2]
+        self.client.force_authenticate(self.business)
+
+        response = self.client.post(reverse("offer-list"), payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_rejects_invalid_offer_detail_values(self):
+        payload = offer_payload()
+        payload["details"][0]["features"] = []
+        payload["details"][1]["features"] = [" "]
+        payload["details"][2]["revisions"] = -2
+        self.client.force_authenticate(self.business)
+
+        response = self.client.post(reverse("offer-list"), payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_list_filters_by_creator_and_search(self):
         self.create_offer(title="Logo Design")
         self.create_offer(owner=self.other, title="Backend API")
@@ -118,6 +138,22 @@ class OfferApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_owner_can_update_offer_details(self):
+        offer = self.create_offer()
+        payload = offer_payload(title="Updated")
+        payload["details"][0]["price"] = "149.00"
+        self.client.force_authenticate(self.business)
+
+        response = self.client.patch(
+            reverse("offer-detail", args=[offer.pk]),
+            payload,
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["title"], "Updated")
+        self.assertEqual(offer.details.get(offer_type="basic").price, 149)
 
     def test_owner_can_delete_offer(self):
         offer = self.create_offer()
