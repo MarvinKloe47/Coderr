@@ -10,6 +10,8 @@ line_length = 88
 source = ["."]
 omit = [
     "*/migrations/*",
+    "core/asgi.py",
+    "core/wsgi.py",
     "manage.py",
     "*/tests/*",
 ]
