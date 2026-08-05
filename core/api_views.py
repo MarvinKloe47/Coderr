@@ -9,6 +9,8 @@ from reviews_app.models import Review
 
 
 class BaseInfoView(APIView):
+    """Return public aggregate counts used by the Coderr landing page."""
+
     permission_classes = [AllowAny]
 
     def get(self, request):

@@ -13,6 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def load_env_file(path):
+    """Load simple KEY=value pairs from `.env` without overriding real env vars."""
     if not path.exists():
         return
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -23,6 +24,7 @@ def load_env_file(path):
 
 
 def env_bool(name, default=False):
+    """Read a boolean environment flag with a safe default."""
     value = os.environ.get(name)
     if value is None:
         return default
@@ -30,20 +32,24 @@ def env_bool(name, default=False):
 
 
 def env_list(name, default=""):
+    """Read comma-separated environment values and ignore empty entries."""
     value = os.environ.get(name, default)
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
 def env_int(name, default=0):
+    """Read an integer environment value used by security settings."""
     value = os.environ.get(name)
     return default if value is None else int(value)
 
 
 def is_test_command():
+    """Allow Django tests to run without a production secret in local shells."""
     return len(sys.argv) > 1 and sys.argv[1] == "test"
 
 
 def required_secret_key():
+    """Require an explicit secret except for the isolated test command."""
     secret_key = os.environ.get("DJANGO_SECRET_KEY")
     if secret_key:
         return secret_key
