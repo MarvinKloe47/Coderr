@@ -41,6 +41,12 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+Generate a local secret key before editing `.env`:
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
 The API base URL is:
 
 ```text
@@ -50,9 +56,12 @@ http://127.0.0.1:8000/api/
 Environment variables:
 
 - `DJANGO_SECRET_KEY`: secret key for Django.
-- `DJANGO_DEBUG`: `True` or `False`.
+- `DJANGO_DEBUG`: `True` or `False`; use `True` only for local development.
 - `DJANGO_ALLOWED_HOSTS`: comma-separated host names.
-- `CORS_ALLOWED_ORIGINS`: comma-separated frontend origins.
+- `CORS_ALLOWED_ORIGINS`: comma-separated frontend origins without trailing slashes.
+
+`.env.example` contains placeholders only. Do not use example values for
+production.
 
 ## Authentication
 
@@ -150,7 +159,33 @@ reviews_app/
 Each domain app keeps API serializers, views, permissions, filters, and URLs in
 its own `api/` package and tests in its own `tests/` package.
 
-## Security Notes
+## Security
+
+- Never commit `.env` files.
+- Never store production secrets in source code.
+- Generate a unique `DJANGO_SECRET_KEY` for every environment.
+- Keep `DJANGO_DEBUG=False` outside local development.
+- Configure allowed hosts and CORS origins explicitly.
+- Use comma-separated CORS origins without trailing slashes.
+- Rotate any credential that was accidentally committed.
+- Do not use the example environment values in production.
+- Do not add internal company domains, customer hosts, or production URLs as
+  examples in documentation or tests.
+
+If a secret is accidentally committed, remove it from the current code, rotate
+or revoke it at the provider, and treat the historical value as compromised.
+Do not rewrite public Git history or force-push without explicit approval.
+
+Production HTTPS settings are controlled by environment variables:
+
+- `DJANGO_SECURE_SSL_REDIRECT`
+- `DJANGO_SECURE_HSTS_SECONDS`
+- `DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS`
+- `DJANGO_SECURE_HSTS_PRELOAD`
+- `DJANGO_SESSION_COOKIE_SECURE`
+- `DJANGO_CSRF_COOKIE_SECURE`
+
+## Additional Security Notes
 
 - Do not commit `.env`, `db.sqlite3`, media files, coverage output, or virtual
   environments.
