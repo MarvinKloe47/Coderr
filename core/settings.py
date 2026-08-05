@@ -35,6 +35,7 @@ AUTH_USER_MODEL = 'auth_app.User'
 INSTALLED_APPS = [
     'corsheaders',
     'auth_app',
+    'offers_app',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
