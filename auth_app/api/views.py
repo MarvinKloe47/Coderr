@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics, mixins, status, viewsets
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .permissions import IsProfileOwnerOrReadOnly
@@ -27,7 +27,7 @@ class ProfileViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = [IsProfileOwnerOrReadOnly]
+    permission_classes = [IsAuthenticated, IsProfileOwnerOrReadOnly]
     serializer_class = ProfileSerializer
     queryset = get_user_model().objects.all().order_by("username")
     lookup_field = "id"

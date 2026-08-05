@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 
 from reviews_app.models import Review
 
@@ -7,7 +8,7 @@ from .serializers import ReviewSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsCustomerOrReadOnly, IsReviewerOrReadOnly]
+    permission_classes = [IsAuthenticated, IsCustomerOrReadOnly, IsReviewerOrReadOnly]
     serializer_class = ReviewSerializer
     pagination_class = None
     filterset_fields = ["business_user_id", "reviewer_id"]

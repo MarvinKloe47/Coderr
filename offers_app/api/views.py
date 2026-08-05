@@ -1,5 +1,6 @@
 from django.db.models import Min
 from rest_framework import mixins, viewsets
+from rest_framework.permissions import IsAuthenticated
 
 from offers_app.models import Offer, OfferDetail
 
@@ -9,7 +10,7 @@ from .serializers import OfferDetailSerializer, OfferSerializer
 
 
 class OfferViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsBusinessOrReadOnly, IsOfferOwnerOrReadOnly]
+    permission_classes = [IsAuthenticated, IsBusinessOrReadOnly, IsOfferOwnerOrReadOnly]
     serializer_class = OfferSerializer
     filterset_class = OfferFilter
     search_fields = ["title", "description"]
