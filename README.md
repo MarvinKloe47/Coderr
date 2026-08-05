@@ -4,7 +4,7 @@ Coderr is a Django and Django REST Framework backend for a service marketplace
 where business users publish offers and customer users order packages and write
 reviews.
 
-## Features
+## Implemented Scope
 
 - Token authentication with registration and login endpoints
 - Custom user model with `customer` and `business` roles
@@ -62,6 +62,10 @@ Environment variables:
 
 `.env.example` contains placeholders only. Do not use example values for
 production.
+
+This project uses SQLite for the Developer Academy submission and local
+development. No external database, object storage, payment provider, or email
+service is required by the implemented backend.
 
 ## Authentication
 
@@ -138,7 +142,7 @@ python manage.py makemigrations --check
 python manage.py test --verbosity 2
 coverage erase
 coverage run manage.py test
-coverage report -m
+coverage report --fail-under=95 -m
 black --check .
 isort --check-only .
 flake8 .
@@ -158,6 +162,20 @@ reviews_app/
 
 Each domain app keeps API serializers, views, permissions, filters, and URLs in
 its own `api/` package and tests in its own `tests/` package.
+
+## Project Rules And Assumptions
+
+- The implementation follows the provided Coderr frontend reference and the
+  requirements matrix in `docs/requirements-matrix.md`.
+- A user has exactly one role: `customer` or `business`.
+- Registration and login return DRF tokens because the frontend authenticates
+  with `Authorization: Token <token>`.
+- Orders store a snapshot of the selected offer detail, so later changes to an
+  offer do not rewrite existing orders.
+- Offer lists are paginated with a page size of six to match the documented
+  frontend expectations.
+- Profile, offer, order, and review object access is enforced by DRF
+  permissions and by querysets that limit visible records.
 
 ## Security
 
@@ -185,14 +203,6 @@ Production HTTPS settings are controlled by environment variables:
 - `DJANGO_SESSION_COOKIE_SECURE`
 - `DJANGO_CSRF_COOKIE_SECURE`
 
-## Additional Security Notes
-
-- Do not commit `.env`, `db.sqlite3`, media files, coverage output, or virtual
-  environments.
-- Set a strong `DJANGO_SECRET_KEY` outside development.
-- Set `DJANGO_DEBUG=False` outside local development.
-- Restrict `DJANGO_ALLOWED_HOSTS` and `CORS_ALLOWED_ORIGINS` for deployment.
-
 ## Troubleshooting
 
 - If image uploads fail, ensure Pillow is installed from `requirements.txt`.
@@ -202,6 +212,7 @@ Production HTTPS settings are controlled by environment variables:
 
 ## Developer Academy Context
 
-This backend was implemented from scratch for the Developer Academy Coderr
-backend final project. The API behavior follows the provided frontend reference
-and the requirements matrix in `docs/requirements-matrix.md`.
+This repository contains the backend final project for the Developer Academy
+Coderr assignment. The code is intentionally kept close to standard Django and
+DRF patterns so the models, serializers, views, permissions, tests, and settings
+can be explained during a project review.
