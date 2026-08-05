@@ -20,6 +20,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "offer"]
 
     def validate_features(self, value):
+        """Require at least one non-empty feature per offer package."""
         if not isinstance(value, list) or not value:
             raise serializers.ValidationError("Provide at least one feature.")
         if not all(isinstance(item, str) and item.strip() for item in value):
@@ -27,6 +28,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         return value
 
     def validate_revisions(self, value):
+        """Use -1 as the documented value for unlimited revisions."""
         if value < -1:
             raise serializers.ValidationError("Use -1 for unlimited revisions.")
         return value
@@ -54,6 +56,7 @@ class OfferSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user", "created_at", "updated_at"]
 
     def validate_details(self, value):
+        """Require exactly the basic, standard and premium packages."""
         types = [item["offer_type"] for item in value]
         expected = list(OfferDetail.Types.values)
         if sorted(types) != sorted(expected):
@@ -61,6 +64,7 @@ class OfferSerializer(serializers.ModelSerializer):
         return value
 
     def get_min_price(self, obj):
+        """Return the annotated minimum price or calculate it from details."""
         value = getattr(obj, "min_price", None)
         if value is not None:
             return value
@@ -68,6 +72,7 @@ class OfferSerializer(serializers.ModelSerializer):
         return min(prices) if prices else None
 
     def get_min_delivery_time(self, obj):
+        """Return the annotated fastest delivery time or calculate it."""
         value = getattr(obj, "min_delivery_time", None)
         if value is not None:
             return value
@@ -76,6 +81,7 @@ class OfferSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        """Create an offer and its three nested package details."""
         details = validated_data.pop("details")
         offer = Offer.objects.create(
             user=self.context["request"].user, **validated_data
@@ -85,6 +91,7 @@ class OfferSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
+        """Replace nested details only when the request includes them."""
         details = validated_data.pop("details", None)
         offer = super().update(instance, validated_data)
         if details is not None:

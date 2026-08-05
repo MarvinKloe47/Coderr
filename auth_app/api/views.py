@@ -8,11 +8,15 @@ from .serializers import LoginSerializer, ProfileSerializer, RegistrationSeriali
 
 
 class RegistrationView(generics.CreateAPIView):
+    """Create a user account and return the documented token payload."""
+
     permission_classes = [AllowAny]
     serializer_class = RegistrationSerializer
 
 
 class LoginView(generics.GenericAPIView):
+    """Authenticate credentials and return a DRF token payload."""
+
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
 
@@ -27,6 +31,8 @@ class ProfileViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
+    """Provide profile detail and owner-only partial updates."""
+
     permission_classes = [IsAuthenticated, IsProfileOwnerOrReadOnly]
     serializer_class = ProfileSerializer
     queryset = get_user_model().objects.all().order_by("username")
@@ -41,6 +47,8 @@ class ProfileViewSet(
 
 
 class BusinessProfileListView(generics.ListAPIView):
+    """List profiles for users with the business role."""
+
     serializer_class = ProfileSerializer
     pagination_class = None
 
@@ -49,6 +57,8 @@ class BusinessProfileListView(generics.ListAPIView):
 
 
 class CustomerProfileListView(generics.ListAPIView):
+    """List profiles for users with the customer role."""
+
     serializer_class = ProfileSerializer
     pagination_class = None
 

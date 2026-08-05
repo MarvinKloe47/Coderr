@@ -19,6 +19,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "reviewer", "created_at", "updated_at"]
 
     def validate_business_user(self, value):
+        """Ensure reviews target another user with the business role."""
         if value.type != get_user_model().Types.BUSINESS:
             raise serializers.ValidationError("Reviews target business users only.")
         if value == self.context["request"].user:
@@ -26,26 +27,32 @@ class ReviewSerializer(serializers.ModelSerializer):
         return value
 
     def validate_rating(self, value):
+        """Keep ratings within the documented one-to-five range."""
         if value < 1 or value > 5:
             raise serializers.ValidationError("Rating must be between 1 and 5.")
         return value
 
     def validate(self, attrs):
-        request = self.context["request"]
+        """Prevent more than one review per reviewer and business user."""
         business_user = attrs.get(
             "business_user", getattr(self.instance, "business_user", None)
         )
+        if self.duplicate_review_exists(business_user):
+            raise serializers.ValidationError("You already reviewed this user.")
+        return attrs
+
+    def duplicate_review_exists(self, business_user):
+        """Check duplicates while allowing the current review to be updated."""
         duplicate = Review.objects.filter(
-            reviewer=request.user,
+            reviewer=self.context["request"].user,
             business_user=business_user,
         )
         if self.instance:
             duplicate = duplicate.exclude(pk=self.instance.pk)
-        if duplicate.exists():
-            raise serializers.ValidationError("You already reviewed this user.")
-        return attrs
+        return duplicate.exists()
 
     def create(self, validated_data):
+        """Store the authenticated user as the reviewer."""
         return Review.objects.create(
             reviewer=self.context["request"].user,
             **validated_data,

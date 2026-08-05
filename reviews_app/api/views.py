@@ -8,6 +8,8 @@ from .serializers import ReviewSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Manage reviews with role checks, filters and ordering."""
+
     permission_classes = [IsAuthenticated, IsCustomerOrReadOnly, IsReviewerOrReadOnly]
     serializer_class = ReviewSerializer
     pagination_class = None
@@ -16,6 +18,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     ordering = ["-updated_at", "id"]
 
     def get_queryset(self):
+        """Load reviewer and business user to avoid extra queries."""
         return Review.objects.select_related(
             "reviewer",
             "business_user",

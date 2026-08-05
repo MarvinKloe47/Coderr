@@ -10,6 +10,8 @@ from .serializers import OfferDetailSerializer, OfferSerializer
 
 
 class OfferViewSet(viewsets.ModelViewSet):
+    """Manage offers and expose documented filtering, search and ordering."""
+
     permission_classes = [IsAuthenticated, IsBusinessOrReadOnly, IsOfferOwnerOrReadOnly]
     serializer_class = OfferSerializer
     filterset_class = OfferFilter
@@ -18,6 +20,7 @@ class OfferViewSet(viewsets.ModelViewSet):
     ordering = ["-updated_at", "id"]
 
     def get_queryset(self):
+        """Load offers with owner, details and aggregate values efficiently."""
         return (
             Offer.objects.select_related("user")
             .prefetch_related("details")
@@ -33,5 +36,7 @@ class OfferDetailViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
+    """Expose a read-only endpoint for a single offer package."""
+
     serializer_class = OfferDetailSerializer
     queryset = OfferDetail.objects.select_related("offer", "offer__user")

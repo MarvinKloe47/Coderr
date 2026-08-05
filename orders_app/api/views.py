@@ -12,12 +12,15 @@ from .serializers import OrderSerializer
 
 
 class OrderViewSet(viewsets.ModelViewSet):
+    """Manage orders visible only to the customer or business participant."""
+
     http_method_names = ["get", "post", "patch", "head", "options"]
     permission_classes = [IsAuthenticated, IsOrderParticipant, CanCreateOrUpdateOrder]
     serializer_class = OrderSerializer
     pagination_class = None
 
     def get_queryset(self):
+        """Return only orders involving the authenticated user."""
         user = self.request.user
         queryset = Order.objects.select_related("customer_user", "business_user")
         return (
@@ -26,6 +29,8 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 
 class OrderCountView(APIView):
+    """Count in-progress orders for a business user."""
+
     status_filter = Order.Status.IN_PROGRESS
 
     def get(self, request, user_id):
@@ -35,4 +40,6 @@ class OrderCountView(APIView):
 
 
 class CompletedOrderCountView(OrderCountView):
+    """Count completed orders for a business user."""
+
     status_filter = Order.Status.COMPLETED

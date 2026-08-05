@@ -4,6 +4,7 @@ from rest_framework.authtoken.models import Token
 
 
 def build_auth_payload(user):
+    """Return the documented token payload for registration and login."""
     token, _ = Token.objects.get_or_create(user=user)
     return {
         "token": token.key,
@@ -27,12 +28,14 @@ class RegistrationSerializer(serializers.ModelSerializer):
         ]
 
     def validate_type(self, value):
+        """Accept only the two roles supported by the frontend."""
         choices = get_user_model().Types.values
         if value not in choices:
             raise serializers.ValidationError("Choose customer or business.")
         return value
 
     def validate(self, attrs):
+        """Ensure the repeated password matches before creating the user."""
         if attrs["password"] != attrs["repeated_password"]:
             raise serializers.ValidationError(
                 {"repeated_password": ["Passwords do not match."]}
@@ -40,6 +43,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        """Create the user through the manager so the password is hashed."""
         validated_data.pop("repeated_password")
         password = validated_data.pop("password")
         return get_user_model().objects.create_user(
@@ -56,6 +60,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        """Authenticate credentials without revealing which field was wrong."""
         user = authenticate(
             request=self.context.get("request"),
             username=attrs["username"],
@@ -92,6 +97,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ["user", "username", "type", "created_at"]
 
     def update(self, instance, validated_data):
+        """Ignore business-only fields when a customer profile is updated."""
         if instance.type == instance.Types.CUSTOMER:
             for field in ["location", "tel", "description", "working_hours"]:
                 validated_data.pop(field, None)
