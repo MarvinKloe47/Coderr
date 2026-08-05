@@ -9,9 +9,15 @@ from reviews_app.models import Review
 class ReviewApiTests(APITestCase):
     def setUp(self):
         users = get_user_model().objects
-        self.business = users.create_user("kevin", password="pw", type="business")
-        self.customer = users.create_user("andrey", password="pw", type="customer")
-        self.other = users.create_user("maria", password="pw", type="customer")
+        self.business = users.create_user(
+            "test_business", password="test-password", type="business"
+        )
+        self.customer = users.create_user(
+            "test_customer", password="test-password", type="customer"
+        )
+        self.other = users.create_user(
+            "other_customer", password="test-password", type="customer"
+        )
 
     def test_customer_can_create_review(self):
         self.client.force_authenticate(self.customer)

@@ -42,9 +42,15 @@ def offer_payload(title="Logo Design"):
 class OfferApiTests(APITestCase):
     def setUp(self):
         users = get_user_model().objects
-        self.business = users.create_user("kevin", password="pw", type="business")
-        self.other = users.create_user("sara", password="pw", type="business")
-        self.customer = users.create_user("andrey", password="pw", type="customer")
+        self.business = users.create_user(
+            "test_business", password="test-password", type="business"
+        )
+        self.other = users.create_user(
+            "other_business", password="test-password", type="business"
+        )
+        self.customer = users.create_user(
+            "test_customer", password="test-password", type="customer"
+        )
 
     def create_offer(self, owner=None, title="Logo Design"):
         owner = owner or self.business

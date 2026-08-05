@@ -10,8 +10,12 @@ from reviews_app.models import Review
 class BaseInfoApiTests(APITestCase):
     def test_base_info_returns_frontend_counts(self):
         users = get_user_model().objects
-        business = users.create_user("kevin", password="pw", type="business")
-        customer = users.create_user("andrey", password="pw", type="customer")
+        business = users.create_user(
+            "test_business", password="test-password", type="business"
+        )
+        customer = users.create_user(
+            "test_customer", password="test-password", type="customer"
+        )
         Offer.objects.create(
             user=business,
             title="Logo",

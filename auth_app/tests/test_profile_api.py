@@ -8,19 +8,19 @@ class ProfileApiTests(APITestCase):
     def setUp(self):
         users = get_user_model().objects
         self.business = users.create_user(
-            "kevin",
-            email="kevin@example.com",
-            password="pw",
+            "test_business",
+            email="business@example.com",
+            password="test-password",
             type="business",
-            first_name="Kevin",
+            first_name="TestBusiness",
             location="Berlin",
         )
         self.customer = users.create_user(
-            "andrey",
-            email="andrey@example.com",
-            password="pw",
+            "test_customer",
+            email="customer@example.com",
+            password="test-password",
             type="customer",
-            first_name="Andrey",
+            first_name="TestCustomer",
         )
 
     def test_authenticated_user_can_get_profile_detail(self):
@@ -37,7 +37,7 @@ class ProfileApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsInstance(response.data, list)
-        self.assertEqual(response.data[0]["username"], "kevin")
+        self.assertEqual(response.data[0]["username"], "test_business")
 
     def test_customer_profile_list_returns_customers_only(self):
         self.client.force_authenticate(self.business)

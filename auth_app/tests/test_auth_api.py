@@ -9,29 +9,31 @@ class RegistrationApiTests(APITestCase):
         response = self.client.post(
             reverse("registration"),
             {
-                "username": "andrey",
-                "email": "andrey@example.com",
-                "password": "asdasd",
-                "repeated_password": "asdasd",
+                "username": "test_customer",
+                "email": "customer@example.com",
+                "password": "test-password",
+                "repeated_password": "test-password",
                 "type": "customer",
             },
             format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["username"], "andrey")
+        self.assertEqual(response.data["username"], "test_customer")
         self.assertIn("token", response.data)
         self.assertTrue(
-            get_user_model().objects.get(username="andrey").check_password("asdasd")
+            get_user_model()
+            .objects.get(username="test_customer")
+            .check_password("test-password")
         )
 
     def test_register_rejects_password_mismatch(self):
         response = self.client.post(
             reverse("registration"),
             {
-                "username": "andrey",
-                "email": "andrey@example.com",
-                "password": "asdasd",
+                "username": "test_customer",
+                "email": "customer@example.com",
+                "password": "test-password",
                 "repeated_password": "different",
                 "type": "customer",
             },
@@ -45,10 +47,10 @@ class RegistrationApiTests(APITestCase):
         response = self.client.post(
             reverse("registration"),
             {
-                "username": "andrey",
-                "email": "andrey@example.com",
-                "password": "asdasd",
-                "repeated_password": "asdasd",
+                "username": "test_customer",
+                "email": "customer@example.com",
+                "password": "test-password",
+                "repeated_password": "test-password",
             },
             format="json",
         )
@@ -60,28 +62,28 @@ class RegistrationApiTests(APITestCase):
 class LoginApiTests(APITestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
-            username="kevin",
-            email="kevin@example.com",
-            password="asdasd24",
+            username="test_business",
+            email="business@example.com",
+            password="test-password",
             type="business",
         )
 
     def test_login_returns_token_payload(self):
         response = self.client.post(
             reverse("login"),
-            {"username": "kevin", "password": "asdasd24"},
+            {"username": "test_business", "password": "test-password"},
             format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["user_id"], self.user.pk)
-        self.assertEqual(response.data["username"], "kevin")
+        self.assertEqual(response.data["username"], "test_business")
         self.assertIn("token", response.data)
 
     def test_login_rejects_wrong_password(self):
         response = self.client.post(
             reverse("login"),
-            {"username": "kevin", "password": "wrong"},
+            {"username": "test_business", "password": "wrong-test-password"},
             format="json",
         )
 
@@ -90,7 +92,7 @@ class LoginApiTests(APITestCase):
     def test_login_rejects_unknown_user(self):
         response = self.client.post(
             reverse("login"),
-            {"username": "missing", "password": "wrong"},
+            {"username": "missing", "password": "wrong-test-password"},
             format="json",
         )
 
