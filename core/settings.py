@@ -3,10 +3,23 @@ Django settings for the Coderr backend.
 """
 
 import os
+import sys
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def load_env_file(path):
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line or line.lstrip().startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
 
 
 def env_bool(name, default=False):
@@ -21,11 +34,28 @@ def env_list(name, default=""):
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-local-development-key-change-me",
-)
-DEBUG = env_bool("DJANGO_DEBUG", True)
+def env_int(name, default=0):
+    value = os.environ.get(name)
+    return default if value is None else int(value)
+
+
+def is_test_command():
+    return len(sys.argv) > 1 and sys.argv[1] == "test"
+
+
+def required_secret_key():
+    secret_key = os.environ.get("DJANGO_SECRET_KEY")
+    if secret_key:
+        return secret_key
+    if is_test_command():
+        return "coderr-test-only-secret-key-not-for-production"
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY must be configured.")
+
+
+load_env_file(BASE_DIR / ".env")
+
+SECRET_KEY = required_secret_key()
+DEBUG = env_bool("DJANGO_DEBUG", False)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost")
 AUTH_USER_MODEL = "auth_app.User"
 
@@ -107,6 +137,17 @@ CORS_ALLOWED_ORIGINS = env_list(
         ]
     ),
 )
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", False)
+SECURE_HSTS_SECONDS = env_int("DJANGO_SECURE_HSTS_SECONDS", 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool(
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", False
+)
+SECURE_HSTS_PRELOAD = env_bool("DJANGO_SECURE_HSTS_PRELOAD", False)
+SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", not DEBUG)
+CSRF_COOKIE_SECURE = env_bool("DJANGO_CSRF_COOKIE_SECURE", not DEBUG)
+X_FRAME_OPTIONS = "DENY"
 
 
 # Database
