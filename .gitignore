@@ -16,3 +16,5 @@ htmlcov/
 *.log
 media/
 staticfiles/
+docs/*
+!docs/requirements-matrix.md
