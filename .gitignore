@@ -52,3 +52,5 @@ htmlcov/
 # Reference materials are reviewed locally but not submitted with the backend.
 docs/*
 !docs/requirements-matrix.md
+!docs/code-walkthrough.md
+!docs/submission-checklist.md
