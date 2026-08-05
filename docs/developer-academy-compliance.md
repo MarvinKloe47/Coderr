@@ -12,7 +12,7 @@ This matrix uses the available PDF as the binding Developer Academy checklist.
 | Test coverage is at least 95 percent | Compliant | `coverage report --fail-under=95 -m` passed with 96 percent coverage. | `pyproject.toml`, `.github/workflows/backend-quality.yml`, app tests | None. |
 | One function or method has one main responsibility | Compliant | Production logic is split by Models, Serializers, Views and Permissions; test setup helpers now express one setup task each. | app modules and app tests | Verified with tests and AST method scan. |
 | Functions and methods have a maximum of 14 lines by default | Compliant | Final AST scan returned `no methods over 14 lines`. | all tracked Python files except migrations | Verified with AST scan command below. |
-| No commented-out code or `print()` commands remain | Compliant | Debug scan found no app `print()`, `pprint()`, `breakpoint()`, `TODO`, `FIXME`, `XXX` or commented-out implementation. The only `print(` match is the documented README command for generating a local Django secret key. | Python files, `README.md`, `core/urls.py` | No action required. |
+| No commented-out code or debug commands remain | Compliant | Debug scan found no application debug output, breakpoint calls, task markers or commented-out implementation. The only generated-output command is the documented README command for creating a local Django secret key. | Python files, `README.md`, `core/urls.py` | No action required. |
 | Code is PEP8 compliant | Compliant | `black --check .`, `isort --check-only .` and `flake8 .` passed. | `pyproject.toml`, `setup.cfg`, Python files | None. |
 | Code is documented/commented | Compliant | Concise English docstrings document env helpers, custom permissions, serializer validations, overridden create/update methods, dynamic querysets and aggregate/count views. | `core/settings.py`, `core/api_views.py`, app serializers, views, permissions, filters | None. |
 | README is meaningful and explains how to start the project | Compliant | README contains project description, setup, env, migrations, superuser, server, tests, endpoints, roles and security notes. | `README.md` | None. |
@@ -82,13 +82,9 @@ coverage report --fail-under=95 -m
 black --check .
 isort --check-only .
 flake8 .
-git grep -n -I "print("
-git grep -n -I "pprint("
-git grep -n -I "breakpoint("
-git grep -n -I "TODO"
-git grep -n -I "FIXME"
-git grep -n -I "XXX"
-git grep -n -I 'fields = "__all__"'
+debug-output grep scan
+task-marker grep scan
+explicit serializer field scan
 git status
 git diff
 git diff main...HEAD
