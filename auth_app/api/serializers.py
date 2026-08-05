@@ -69,3 +69,31 @@ class LoginSerializer(AuthResponseMixin, serializers.Serializer):
 
     def to_representation(self, instance):
         return self.auth_payload(instance["user"])
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source="id", read_only=True)
+
+    class Meta:
+        model = get_user_model()
+        fields = [
+            "user",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "file",
+            "location",
+            "tel",
+            "description",
+            "working_hours",
+            "type",
+            "created_at",
+        ]
+        read_only_fields = ["user", "username", "type", "created_at"]
+
+    def update(self, instance, validated_data):
+        if instance.type == instance.Types.CUSTOMER:
+            for field in ["location", "tel", "description", "working_hours"]:
+                validated_data.pop(field, None)
+        return super().update(instance, validated_data)
