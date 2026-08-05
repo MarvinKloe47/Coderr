@@ -132,8 +132,7 @@ class OrderApiTests(APITestCase):
 
         open_response = self.client.get(reverse("order-count", args=[self.business.pk]))
         done_response = self.client.get(
-            reverse("completed-order-count",
-            args=[self.business.pk])
+            reverse("completed-order-count", args=[self.business.pk])
         )
 
         self.assertEqual(open_response.data["order_count"], 1)

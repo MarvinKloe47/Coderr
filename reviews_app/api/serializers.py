@@ -32,7 +32,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context["request"]
-        business_user = attrs.get("business_user", getattr(self.instance, "business_user", None))
+        business_user = attrs.get(
+            "business_user", getattr(self.instance, "business_user", None)
+        )
         duplicate = Review.objects.filter(
             reviewer=request.user,
             business_user=business_user,

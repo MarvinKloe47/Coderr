@@ -20,6 +20,7 @@ class Offer(models.Model):
     def __str__(self):
         return self.title
 
+
 class OfferDetail(models.Model):
     class Types(models.TextChoices):
         BASIC = "basic", "Basic"

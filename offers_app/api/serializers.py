@@ -77,7 +77,9 @@ class OfferSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         details = validated_data.pop("details")
-        offer = Offer.objects.create(user=self.context["request"].user, **validated_data)
+        offer = Offer.objects.create(
+            user=self.context["request"].user, **validated_data
+        )
         self.save_details(offer, details)
         return offer
 

@@ -59,7 +59,9 @@ class OfferApiTests(APITestCase):
 
     def test_business_can_create_offer_with_details(self):
         self.client.force_authenticate(self.business)
-        response = self.client.post(reverse("offer-list"), offer_payload(), format="json")
+        response = self.client.post(
+            reverse("offer-list"), offer_payload(), format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["user"], self.business.pk)
@@ -68,7 +70,9 @@ class OfferApiTests(APITestCase):
 
     def test_customer_cannot_create_offer(self):
         self.client.force_authenticate(self.customer)
-        response = self.client.post(reverse("offer-list"), offer_payload(), format="json")
+        response = self.client.post(
+            reverse("offer-list"), offer_payload(), format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 

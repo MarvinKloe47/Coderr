@@ -46,7 +46,9 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         detail_id = validated_data.pop("offer_detail_id")
-        detail = OfferDetail.objects.select_related("offer", "offer__user").get(pk=detail_id)
+        detail = OfferDetail.objects.select_related("offer", "offer__user").get(
+            pk=detail_id
+        )
         return Order.objects.create(
             customer_user=self.context["request"].user,
             business_user=detail.offer.user,

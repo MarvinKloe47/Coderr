@@ -16,9 +16,9 @@ class BaseInfoView(APIView):
         data = {
             "offer_count": Offer.objects.count(),
             "review_count": Review.objects.count(),
-            "business_profile_count": get_user_model().objects.filter(
-                type="business"
-            ).count(),
+            "business_profile_count": get_user_model()
+            .objects.filter(type="business")
+            .count(),
             "average_rating": round(average, 1),
         }
         return Response(data)

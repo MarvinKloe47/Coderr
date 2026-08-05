@@ -15,8 +15,16 @@ router.register("profile", ProfileViewSet, basename="profile")
 urlpatterns = [
     path("registration/", RegistrationView.as_view(), name="registration"),
     path("login/", LoginView.as_view(), name="login"),
-    path("profiles/business/", BusinessProfileListView.as_view(), name="business-profiles"),
-    path("profiles/customer/", CustomerProfileListView.as_view(), name="customer-profiles"),
+    path(
+        "profiles/business/",
+        BusinessProfileListView.as_view(),
+        name="business-profiles",
+    ),
+    path(
+        "profiles/customer/",
+        CustomerProfileListView.as_view(),
+        name="customer-profiles",
+    ),
 ]
 
 urlpatterns += router.urls
