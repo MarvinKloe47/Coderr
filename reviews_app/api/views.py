@@ -9,6 +9,7 @@ from .serializers import ReviewSerializer
 class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsCustomerOrReadOnly, IsReviewerOrReadOnly]
     serializer_class = ReviewSerializer
+    pagination_class = None
     filterset_fields = ["business_user_id", "reviewer_id"]
     ordering_fields = ["updated_at", "rating"]
     ordering = ["-updated_at", "id"]

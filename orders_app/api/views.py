@@ -14,6 +14,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "head", "options"]
     permission_classes = [IsOrderParticipant, CanCreateOrUpdateOrder]
     serializer_class = OrderSerializer
+    pagination_class = None
 
     def get_queryset(self):
         user = self.request.user

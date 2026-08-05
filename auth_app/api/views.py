@@ -42,6 +42,7 @@ class ProfileViewSet(
 
 class BusinessProfileListView(generics.ListAPIView):
     serializer_class = ProfileSerializer
+    pagination_class = None
 
     def get_queryset(self):
         return get_user_model().objects.filter(type="business").order_by("username")
@@ -49,6 +50,7 @@ class BusinessProfileListView(generics.ListAPIView):
 
 class CustomerProfileListView(generics.ListAPIView):
     serializer_class = ProfileSerializer
+    pagination_class = None
 
     def get_queryset(self):
         return get_user_model().objects.filter(type="customer").order_by("username")
