@@ -18,7 +18,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = Order.objects.select_related("customer_user", "business_user")
-        return queryset.filter(customer_user=user) | queryset.filter(business_user=user)
+        return (
+            queryset.filter(customer_user=user) | queryset.filter(business_user=user)
+        ).order_by("-created_at", "id")
 
 
 class OrderCountView(APIView):

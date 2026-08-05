@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework import generics, status, viewsets
+from rest_framework import generics, mixins, status, viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -22,7 +22,11 @@ class LoginView(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
+class ProfileViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
     permission_classes = [IsProfileOwnerOrReadOnly]
     serializer_class = ProfileSerializer
     queryset = get_user_model().objects.all().order_by("username")

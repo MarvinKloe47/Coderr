@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-from django.db.models import Min
 
 
 class Offer(models.Model):
@@ -20,15 +19,6 @@ class Offer(models.Model):
 
     def __str__(self):
         return self.title
-
-    @property
-    def min_price(self):
-        return self.details.aggregate(value=Min("price"))["value"]
-
-    @property
-    def min_delivery_time(self):
-        return self.details.aggregate(value=Min("delivery_time_in_days"))["value"]
-
 
 class OfferDetail(models.Model):
     class Types(models.TextChoices):
