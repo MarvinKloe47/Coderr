@@ -165,8 +165,6 @@ its own `api/` package and tests in its own `tests/` package.
 
 ## Project Rules And Assumptions
 
-- The implementation follows the provided Coderr frontend reference and the
-  requirements matrix in `docs/requirements-matrix.md`.
 - A user has exactly one role: `customer` or `business`.
 - Registration and login return DRF tokens because the frontend authenticates
   with `Authorization: Token <token>`.
