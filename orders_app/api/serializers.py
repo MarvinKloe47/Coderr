@@ -6,6 +6,12 @@ from orders_app.models import Order
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    """Create and expose orders with immutable offer package snapshots.
+
+    Customers submit an offer_detail_id, but responses contain copied package
+    values so later offer edits do not change existing orders.
+    """
+
     offer_detail_id = serializers.IntegerField(write_only=True, required=False)
     offer_type = serializers.SerializerMethodField()
 

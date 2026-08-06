@@ -5,7 +5,11 @@ from offers_app.models import Offer
 
 
 class OfferFilter(django_filters.FilterSet):
-    """Expose documented offer filters used by the frontend."""
+    """Apply documented query parameters to public offer lists.
+
+    Creator filtering uses the offer owner directly, while price and delivery
+    filters compare against each offer's best package values.
+    """
 
     creator_id = django_filters.NumberFilter(field_name="user_id")
     min_price = django_filters.NumberFilter(method="filter_min_price")

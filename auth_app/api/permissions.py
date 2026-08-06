@@ -2,7 +2,11 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsProfileOwnerOrReadOnly(BasePermission):
-    """Allow users to edit only their own profile."""
+    """Protect profile updates while allowing authenticated profile reads.
+
+    Object-level writes are limited to the profile owner; authentication is
+    enforced by the viewset before this permission runs.
+    """
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:

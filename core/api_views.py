@@ -9,7 +9,12 @@ from reviews_app.models import Review
 
 
 class BaseInfoView(APIView):
-    """Return public aggregate counts used by the Coderr landing page."""
+    """Return public aggregate counts for the landing page.
+
+    The endpoint combines offer, review and business profile totals with the
+    current average review rating and intentionally remains available without
+    authentication.
+    """
 
     permission_classes = [AllowAny]
 

@@ -15,6 +15,12 @@ def build_auth_payload(user):
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
+    """Validate public account registration and produce the token response.
+
+    The serializer creates the custom User model with the requested customer or
+    business role and hides password fields from the documented response.
+    """
+
     repeated_password = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
 
@@ -57,6 +63,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
+    """Authenticate username/password credentials for the login endpoint.
+
+    Successful validation exposes the same token payload as registration while
+    keeping the submitted password write-only.
+    """
+
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
@@ -77,6 +89,12 @@ class LoginSerializer(serializers.Serializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    """Expose editable profile fields for authenticated profile detail views.
+
+    Owner PATCH requests use this serializer for both customer and business
+    users. Customer updates intentionally ignore business-only profile fields.
+    """
+
     user = serializers.IntegerField(source="id", read_only=True)
 
     class Meta:
@@ -106,6 +124,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class BusinessProfileSerializer(ProfileSerializer):
+    """Represent business users in the public business profile list.
+
+    The list schema includes business contact fields and omits account details
+    that are only returned by the authenticated profile detail endpoint.
+    """
+
     class Meta(ProfileSerializer.Meta):
         fields = [
             "user",
@@ -122,6 +146,12 @@ class BusinessProfileSerializer(ProfileSerializer):
 
 
 class CustomerProfileSerializer(ProfileSerializer):
+    """Represent customer users in the customer profile list.
+
+    The list schema keeps customer profile data compact and maps created_at to
+    the uploaded_at field expected by the frontend contract.
+    """
+
     uploaded_at = serializers.DateTimeField(source="created_at", read_only=True)
 
     class Meta(ProfileSerializer.Meta):

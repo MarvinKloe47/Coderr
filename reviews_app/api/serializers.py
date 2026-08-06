@@ -5,6 +5,13 @@ from reviews_app.models import Review
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Validate customer reviews for business profiles.
+
+    The serializer assigns the authenticated reviewer on create, limits review
+    targets to business users, and enforces one review per customer/business
+    pair.
+    """
+
     class Meta:
         model = Review
         fields = [

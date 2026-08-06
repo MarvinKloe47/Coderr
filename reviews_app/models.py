@@ -4,6 +4,12 @@ from django.db import models
 
 
 class Review(models.Model):
+    """Store a customer's rating and text for a business user.
+
+    A database constraint enforces the API rule that one customer may review the
+    same business profile only once.
+    """
+
     reviewer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

@@ -2,7 +2,11 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsCustomerOrReadOnly(BasePermission):
-    """Allow review creation only for customer users."""
+    """Restrict review writes to users with the customer role.
+
+    Safe reads remain available to authenticated users, while create and update
+    requests require the Coderr customer role.
+    """
 
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
@@ -11,7 +15,11 @@ class IsCustomerOrReadOnly(BasePermission):
 
 
 class IsReviewerOrReadOnly(BasePermission):
-    """Allow review changes only for the user who wrote the review."""
+    """Protect review modifications at the object level.
+
+    Unsafe requests are allowed only for the reviewer stored on the review;
+    customer-role validation is handled by a separate permission.
+    """
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:

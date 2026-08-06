@@ -8,7 +8,12 @@ from .serializers import ReviewSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    """Manage reviews with role checks, filters and ordering."""
+    """Expose review CRUD with customer-only writes and owner-only edits.
+
+    Authenticated users may read reviews with documented filters and ordering,
+    while creation is restricted to customers and updates stay with the
+    original reviewer.
+    """
 
     permission_classes = [IsAuthenticated, IsCustomerOrReadOnly, IsReviewerOrReadOnly]
     serializer_class = ReviewSerializer

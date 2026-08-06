@@ -3,6 +3,12 @@ from django.db import models
 
 
 class Offer(models.Model):
+    """Represent a service offer owned by a business user.
+
+    Each offer groups the title, description and image shared by its three
+    package details and is ordered by the latest update for list endpoints.
+    """
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -22,6 +28,12 @@ class Offer(models.Model):
 
 
 class OfferDetail(models.Model):
+    """Store one priced package tier for an offer.
+
+    The basic, standard and premium tiers are unique per offer and are resolved
+    by offer_type during nested offer updates.
+    """
+
     class Types(models.TextChoices):
         BASIC = "basic", "Basic"
         STANDARD = "standard", "Standard"

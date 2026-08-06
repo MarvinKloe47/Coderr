@@ -15,7 +15,12 @@ from .serializers import (
 
 
 class OfferViewSet(viewsets.ModelViewSet):
-    """Manage offers and expose documented filtering, search and ordering."""
+    """Expose offer CRUD operations with action-specific API behavior.
+
+    The public list endpoint uses filtering, search, ordering and a compact list
+    serializer. Authenticated detail and write actions use owner and business
+    role checks plus serializers that match the documented schemas.
+    """
 
     serializer_class = OfferSerializer
     filterset_class = OfferFilter
@@ -58,7 +63,11 @@ class OfferDetailViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    """Expose a read-only endpoint for a single offer package."""
+    """Expose authenticated read access to a single offer package.
+
+    Offer lists link to this endpoint, while mutations remain available only
+    through the parent offer update flow.
+    """
 
     permission_classes = [IsAuthenticated]
     serializer_class = OfferDetailSerializer

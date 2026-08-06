@@ -5,6 +5,12 @@ from offers_app.models import OfferDetail
 
 
 class Order(models.Model):
+    """Track a customer's purchase of a business offer package.
+
+    The order keeps copied package values next to the source OfferDetail so the
+    order history remains stable after future offer edits.
+    """
+
     class Status(models.TextChoices):
         IN_PROGRESS = "in_progress", "In progress"
         COMPLETED = "completed", "Completed"

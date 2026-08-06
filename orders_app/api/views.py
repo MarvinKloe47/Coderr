@@ -12,7 +12,12 @@ from .serializers import OrderSerializer
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    """Manage orders visible only to the customer or business participant."""
+    """Expose order CRUD with participant-scoped access.
+
+    Customers create orders from offer details, involved customers and business
+    users can read them, business users update status, and staff users may
+    delete orders.
+    """
 
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
     permission_classes = [IsAuthenticated, IsOrderParticipant, CanCreateOrUpdateOrder]
@@ -35,7 +40,11 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 
 class OrderCountView(APIView):
-    """Count in-progress orders for a business user."""
+    """Return the number of in-progress orders for a business profile.
+
+    The endpoint accepts only business user IDs and returns the key documented
+    for the frontend order counter.
+    """
 
     status_filter = Order.Status.IN_PROGRESS
 
@@ -46,7 +55,11 @@ class OrderCountView(APIView):
 
 
 class CompletedOrderCountView(OrderCountView):
-    """Count completed orders for a business user."""
+    """Return the number of completed orders for a business profile.
+
+    It reuses the same business-user lookup as OrderCountView but exposes the
+    completed_order_count response key required by the API contract.
+    """
 
     status_filter = Order.Status.COMPLETED
 

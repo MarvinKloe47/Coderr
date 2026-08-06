@@ -6,6 +6,8 @@ from .models import User
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
+    """Expose Coderr profile fields in Django's built-in user admin."""
+
     fieldsets = UserAdmin.fieldsets + (
         (
             "Coderr profile",

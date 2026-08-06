@@ -6,6 +6,13 @@ from offers_app.models import Offer, OfferDetail
 
 
 class OfferDetailSerializer(serializers.ModelSerializer):
+    """Validate and render a single offer package.
+
+    The serializer is used both for nested offer writes and for the read-only
+    offer detail endpoint. Package type, features, revisions, delivery time and
+    price form the documented offer tier contract.
+    """
+
     class Meta:
         model = OfferDetail
         fields = [
@@ -35,6 +42,13 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
 
 class OfferSerializer(serializers.ModelSerializer):
+    """Represent offers with nested package details and aggregate fields.
+
+    It handles the full offer detail schema for create, retrieve and nested
+    updates. Minimum price and delivery time are read from queryset annotations
+    when available to keep list responses efficient.
+    """
+
     details = OfferDetailSerializer(many=True)
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
@@ -129,6 +143,12 @@ class OfferSerializer(serializers.ModelSerializer):
 
 
 class OfferDetailLinkSerializer(serializers.ModelSerializer):
+    """Represent offer packages as links in the paginated offer list.
+
+    List responses expose lightweight detail references instead of embedding
+    every package, matching the documented list schema.
+    """
+
     url = serializers.SerializerMethodField()
 
     class Meta:
@@ -141,12 +161,20 @@ class OfferDetailLinkSerializer(serializers.ModelSerializer):
 
 
 class OfferUserDetailsSerializer(serializers.Serializer):
+    """Embed creator identity fields in offer list responses."""
+
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     username = serializers.CharField()
 
 
 class OfferListSerializer(OfferSerializer):
+    """Format offer list entries with linked details and creator data.
+
+    The serializer reuses offer aggregate fields while replacing nested package
+    payloads with offer detail links for the paginated public list endpoint.
+    """
+
     details = OfferDetailLinkSerializer(many=True, read_only=True)
     user_details = OfferUserDetailsSerializer(source="user", read_only=True)
 
@@ -167,6 +195,8 @@ class OfferListSerializer(OfferSerializer):
 
 
 class OfferWriteSerializer(OfferSerializer):
+    """Limit offer write responses to the documented mutable offer fields."""
+
     class Meta(OfferSerializer.Meta):
         fields = [
             "id",

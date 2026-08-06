@@ -3,6 +3,12 @@ from django.db import models
 
 
 class UserManager(BaseUserManager):
+    """Create Coderr users while preserving Django password handling.
+
+    The manager requires usernames, normalizes email addresses and assigns the
+    business role to superusers so admin accounts satisfy the custom user model.
+    """
+
     use_in_migrations = True
 
     def create_user(self, username, email=None, password=None, **extra_fields):
@@ -24,6 +30,12 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    """Store authentication data plus Coderr profile and role fields.
+
+    The single type field distinguishes customer and business users throughout
+    serializers, permissions, profile lists, offers, orders and reviews.
+    """
+
     class Types(models.TextChoices):
         CUSTOMER = "customer", "Customer"
         BUSINESS = "business", "Business"

@@ -2,7 +2,12 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsOrderParticipant(BasePermission):
-    """Allow order object access only to the involved customer or business user."""
+    """Restrict order object access to participants and staff users.
+
+    Customers and business users may access only orders in which they are
+    stored as participants. Staff bypasses this object restriction for admin
+    deletion support.
+    """
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
@@ -11,7 +16,11 @@ class IsOrderParticipant(BasePermission):
 
 
 class CanCreateOrUpdateOrder(BasePermission):
-    """Limit order creation to customers and status updates to businesses."""
+    """Apply role-specific order write rules.
+
+    Customers may create orders, business participants may update order status,
+    and delete requests are reserved for staff users.
+    """
 
     def has_permission(self, request, view):
         if request.method == "POST":

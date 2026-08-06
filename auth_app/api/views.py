@@ -14,14 +14,22 @@ from .serializers import (
 
 
 class RegistrationView(generics.CreateAPIView):
-    """Create a user account and return the documented token payload."""
+    """Expose public account registration through DRF's create flow.
+
+    Validation and token response shaping live in RegistrationSerializer, so the
+    view only opens the endpoint to anonymous users.
+    """
 
     permission_classes = [AllowAny]
     serializer_class = RegistrationSerializer
 
 
 class LoginView(generics.GenericAPIView):
-    """Authenticate credentials and return a DRF token payload."""
+    """Expose token login without creating or modifying model instances.
+
+    The serializer performs authentication and formats the documented payload;
+    the view keeps the endpoint publicly accessible.
+    """
 
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
@@ -37,7 +45,12 @@ class ProfileViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    """Provide profile detail and owner-only partial updates."""
+    """Provide authenticated profile detail and owner-only updates.
+
+    Retrieve and PATCH actions use DRF mixins with object permissions, while
+    field-level restrictions such as customer-only editable fields remain in the
+    profile serializer.
+    """
 
     permission_classes = [IsAuthenticated, IsProfileOwnerOrReadOnly]
     serializer_class = ProfileSerializer
@@ -46,7 +59,11 @@ class ProfileViewSet(
 
 
 class BusinessProfileListView(generics.ListAPIView):
-    """List profiles for users with the business role."""
+    """List business profiles without pagination.
+
+    The endpoint returns only users with the business role and uses the reduced
+    public business profile schema expected by the frontend.
+    """
 
     serializer_class = BusinessProfileSerializer
     pagination_class = None
@@ -56,7 +73,11 @@ class BusinessProfileListView(generics.ListAPIView):
 
 
 class CustomerProfileListView(generics.ListAPIView):
-    """List profiles for users with the customer role."""
+    """List customer profiles without pagination.
+
+    The endpoint returns only users with the customer role and uses the compact
+    public customer schema with uploaded_at derived from created_at.
+    """
 
     serializer_class = CustomerProfileSerializer
     pagination_class = None
