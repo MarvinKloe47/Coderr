@@ -113,6 +113,20 @@ class ProfileApiTests(APITestCase):
         self.assertEqual(response.data["first_name"], "K")
         self.assertEqual(response.data["working_hours"], "9-5")
 
+    def test_profile_patch_keeps_omitted_fields_unchanged(self):
+        self.client.force_authenticate(self.business)
+        response = self.client.patch(
+            reverse("profile-detail", args=[self.business.pk]),
+            {"last_name": "Updated"},
+            format="json",
+        )
+        self.business.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.business.last_name, "Updated")
+        self.assertEqual(self.business.first_name, "TestBusiness")
+        self.assertEqual(self.business.location, "Berlin")
+
     def test_user_cannot_patch_other_profile(self):
         self.client.force_authenticate(self.customer)
         response = self.client.patch(
