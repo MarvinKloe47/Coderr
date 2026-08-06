@@ -9,6 +9,7 @@ class IsBusinessOrReadOnly(BasePermission):
     """
 
     def has_permission(self, request, view):
+        """Allow safe methods and require the business role for unsafe ones."""
         if request.method in SAFE_METHODS:
             return True
         return request.user.type == "business"
@@ -22,6 +23,7 @@ class IsOfferOwnerOrReadOnly(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
+        """Allow reads and restrict unsafe object requests to the owner."""
         if request.method in SAFE_METHODS:
             return True
         return obj.user == request.user

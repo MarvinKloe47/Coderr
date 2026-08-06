@@ -40,7 +40,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        """Prevent more than one review per reviewer and business user."""
+        """Enforce the documented PATCH field set and duplicate-review rule.
+
+        DRF would accept any writable field on PATCH. The review API allows only
+        rating and description updates, and creation/update must still preserve
+        one review per customer/business pair.
+        """
         request = self.context.get("request")
         if self.instance and request and request.method == "PATCH":
             invalid_fields = set(request.data) - {"description", "rating"}
@@ -66,7 +71,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return duplicate.exists()
 
     def create(self, validated_data):
-        """Store the authenticated user as the reviewer."""
+        """Store the authenticated user as reviewer during DRF creation."""
         return Review.objects.create(
             reviewer=self.context["request"].user,
             **validated_data,

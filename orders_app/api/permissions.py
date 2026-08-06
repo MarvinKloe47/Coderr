@@ -10,6 +10,7 @@ class IsOrderParticipant(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
+        """Allow staff or one of the two stored order participants."""
         if request.user.is_staff:
             return True
         return request.user in {obj.customer_user, obj.business_user}
@@ -23,6 +24,7 @@ class CanCreateOrUpdateOrder(BasePermission):
     """
 
     def has_permission(self, request, view):
+        """Apply request-level role checks before object lookup."""
         if request.method == "POST":
             return request.user.type == "customer"
         if request.method == "DELETE":
@@ -30,6 +32,7 @@ class CanCreateOrUpdateOrder(BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
+        """Restrict unsafe object requests to business participants or staff."""
         if request.method == "DELETE":
             return request.user.is_staff
         if request.method in SAFE_METHODS:

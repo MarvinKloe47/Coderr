@@ -9,6 +9,7 @@ class IsProfileOwnerOrReadOnly(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
+        """Allow reads for authenticated users and writes for the owner only."""
         if request.method in SAFE_METHODS:
             return True
         return obj == request.user

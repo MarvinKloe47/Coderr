@@ -29,6 +29,11 @@ class OfferViewSet(viewsets.ModelViewSet):
     ordering = ["-updated_at", "id"]
 
     def get_permissions(self):
+        """Select permissions according to the current offer action.
+
+        The list action is intentionally public. Other actions keep DRF token
+        authentication active and add role plus ownership checks for writes.
+        """
         if self.action == "list":
             permission_classes = [AllowAny]
         else:
@@ -40,6 +45,11 @@ class OfferViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
+        """Use the serializer variant required by each documented response.
+
+        List responses expose detail links and creator data, write responses use
+        the nested mutable payload, and retrieve responses include full details.
+        """
         if self.action == "list":
             return OfferListSerializer
         if self.action in {"create", "update", "partial_update"}:
@@ -47,7 +57,11 @@ class OfferViewSet(viewsets.ModelViewSet):
         return OfferSerializer
 
     def get_queryset(self):
-        """Load offers with owner, details and aggregate values efficiently."""
+        """Load offers with related data and computed list aggregates.
+
+        The queryset preserves DRF filtering, search and ordering support while
+        preloading package details and annotating the minimum package values.
+        """
         return (
             Offer.objects.select_related("user")
             .prefetch_related("details")

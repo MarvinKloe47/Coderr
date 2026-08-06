@@ -23,7 +23,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     ordering = ["-updated_at", "id"]
 
     def get_queryset(self):
-        """Load reviewer and business user to avoid extra queries."""
+        """Load reviews with related users for list and detail responses.
+
+        The explicit queryset keeps DRF filter and ordering backends available
+        while avoiding extra queries for reviewer and business profile fields.
+        """
         return Review.objects.select_related(
             "reviewer",
             "business_user",

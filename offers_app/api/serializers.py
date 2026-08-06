@@ -70,7 +70,12 @@ class OfferSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user", "created_at", "updated_at"]
 
     def validate_details(self, value):
-        """Validate nested package types for create and update requests."""
+        """Validate package types before nested offer detail persistence.
+
+        Full writes must include exactly the three documented package types.
+        PATCH requests may send a subset, but each item still needs one unique
+        offer_type so the existing detail row can be resolved safely.
+        """
         types = []
         for item in value:
             offer_type = item.get("offer_type")
@@ -109,7 +114,12 @@ class OfferSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        """Create an offer and its three nested package details."""
+        """Create an offer and its package rows in one transaction.
+
+        DRF's default ModelSerializer create cannot persist writable nested
+        details, so the serializer creates the parent offer for the request user
+        and then stores the three validated package tiers.
+        """
         details = validated_data.pop("details")
         offer = Offer.objects.create(
             user=self.context["request"].user, **validated_data
@@ -119,7 +129,12 @@ class OfferSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        """Update nested details by offer_type without replacing their rows."""
+        """Update an offer and supplied package details atomically.
+
+        DRF's default ModelSerializer update cannot update nested OfferDetail
+        rows. Supplied packages are resolved by offer_type and updated without
+        replacing their database identities.
+        """
         details = validated_data.pop("details", None)
         offer = super().update(instance, validated_data)
         if details is not None:
@@ -127,11 +142,13 @@ class OfferSerializer(serializers.ModelSerializer):
         return offer
 
     def save_details(self, offer, details):
+        """Persist validated package details for a newly created offer."""
         OfferDetail.objects.bulk_create(
             [OfferDetail(offer=offer, **detail) for detail in details]
         )
 
     def update_details(self, offer, details):
+        """Apply partial package changes to existing rows by offer_type."""
         existing_details = {detail.offer_type: detail for detail in offer.details.all()}
 
         for detail_data in details:

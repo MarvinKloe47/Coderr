@@ -19,6 +19,7 @@ class BaseInfoView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        """Build the public statistics payload from current database totals."""
         average = Review.objects.aggregate(value=Avg("rating"))["value"] or 0
         data = {
             "offer_count": Offer.objects.count(),

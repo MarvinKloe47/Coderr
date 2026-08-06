@@ -35,6 +35,12 @@ class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
+        """Authenticate credentials and return the serializer's token payload.
+
+        GenericAPIView has no default POST handler for this login use case, so
+        the method keeps DRF serializer validation while returning the documented
+        200 response body instead of creating a model instance.
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

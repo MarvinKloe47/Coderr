@@ -9,6 +9,7 @@ class IsCustomerOrReadOnly(BasePermission):
     """
 
     def has_permission(self, request, view):
+        """Allow safe methods and require the customer role for writes."""
         if request.method in SAFE_METHODS:
             return True
         return request.user.type == "customer"
@@ -22,6 +23,7 @@ class IsReviewerOrReadOnly(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
+        """Allow reads and restrict unsafe object requests to the reviewer."""
         if request.method in SAFE_METHODS:
             return True
         return obj.reviewer == request.user

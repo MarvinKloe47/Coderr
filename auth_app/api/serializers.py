@@ -59,6 +59,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
+        """Replace the user model representation with the auth token schema."""
         return build_auth_payload(instance)
 
 
@@ -85,6 +86,7 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
     def to_representation(self, instance):
+        """Return token data from validated credentials instead of input fields."""
         return build_auth_payload(instance["user"])
 
 
@@ -116,7 +118,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ["user", "username", "type", "created_at"]
 
     def update(self, instance, validated_data):
-        """Ignore business-only fields when a customer profile is updated."""
+        """Apply DRF's model update after removing disallowed customer fields.
+
+        Profile PATCH uses the standard UpdateModelMixin flow. The serializer is
+        the extension point that keeps customer accounts from changing fields
+        reserved for business profile data.
+        """
         if instance.type == instance.Types.CUSTOMER:
             for field in ["location", "tel", "description", "working_hours"]:
                 validated_data.pop(field, None)

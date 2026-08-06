@@ -47,19 +47,28 @@ class OrderSerializer(serializers.ModelSerializer):
         ]
 
     def validate_status(self, value):
-        """Accept only status values defined by the Order model."""
+        """Accept only status values defined by the Order model.
+
+        The field validator gives PATCH requests a controlled 400 response for
+        unsupported status values before the model is saved.
+        """
         if value not in Order.Status.values:
             raise serializers.ValidationError("Invalid order status.")
         return value
 
     def validate_offer_detail_id(self, value):
-        """Reject orders for offer details that do not exist."""
+        """Resolve missing offer details as the documented 404 API error."""
         if not OfferDetail.objects.filter(pk=value).exists():
             raise NotFound("Offer detail not found.")
         return value
 
     def validate(self, attrs):
-        """Allow status-only PATCH requests for documented order updates."""
+        """Restrict order PATCH requests to status changes only.
+
+        DRF would normally allow writable serializer fields to be supplied on
+        partial updates. The order API documents business updates as status-only,
+        so unexpected PATCH fields are rejected before save.
+        """
         request = self.context.get("request")
         if self.instance and request and request.method == "PATCH":
             invalid_fields = set(request.data) - {"status"}
@@ -75,7 +84,12 @@ class OrderSerializer(serializers.ModelSerializer):
         return ""
 
     def create(self, validated_data):
-        """Create an order with immutable values from the chosen offer detail."""
+        """Create an order with immutable values from the chosen offer detail.
+
+        DRF's default ModelSerializer create cannot derive both participants and
+        copied package fields from offer_detail_id, so this method resolves the
+        detail, assigns the authenticated customer and stores the snapshot.
+        """
         detail_id = validated_data.pop("offer_detail_id")
         detail = OfferDetail.objects.select_related("offer", "offer__user").get(
             pk=detail_id

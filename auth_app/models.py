@@ -12,6 +12,7 @@ class UserManager(BaseUserManager):
     use_in_migrations = True
 
     def create_user(self, username, email=None, password=None, **extra_fields):
+        """Create regular users with normalized email and hashed password."""
         if not username:
             raise ValueError("The username must be set.")
         email = self.normalize_email(email)
@@ -21,6 +22,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, username, email=None, password=None, **extra_fields):
+        """Create admin users with required staff flags and a business role."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("type", User.Types.BUSINESS)

@@ -25,7 +25,12 @@ class OrderViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        """Return only orders involving the authenticated user."""
+        """Return only orders the authenticated user may inspect.
+
+        Staff users need the full queryset for administrative deletion. Regular
+        users see only orders where they are the customer or business
+        participant, with related users and offer details preloaded.
+        """
         user = self.request.user
         queryset = Order.objects.select_related(
             "customer_user",
@@ -49,6 +54,7 @@ class OrderCountView(APIView):
     status_filter = Order.Status.IN_PROGRESS
 
     def get(self, request, user_id):
+        """Return the documented in-progress order count response."""
         user = get_object_or_404(User, pk=user_id, type=User.Types.BUSINESS)
         count = user.business_orders.filter(status=self.status_filter).count()
         return Response({"order_count": count})
@@ -64,6 +70,7 @@ class CompletedOrderCountView(OrderCountView):
     status_filter = Order.Status.COMPLETED
 
     def get(self, request, user_id):
+        """Return the documented completed order count response."""
         user = get_object_or_404(User, pk=user_id, type=User.Types.BUSINESS)
         count = user.business_orders.filter(status=self.status_filter).count()
         return Response({"completed_order_count": count})
