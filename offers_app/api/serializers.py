@@ -56,10 +56,22 @@ class OfferSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user", "created_at", "updated_at"]
 
     def validate_details(self, value):
-        """Require exactly the basic, standard and premium packages."""
-        types = [item["offer_type"] for item in value]
+        """Validate nested package types for create and update requests."""
+        types = []
+        for item in value:
+            offer_type = item.get("offer_type")
+            if not offer_type:
+                raise serializers.ValidationError(
+                    "Each detail must include offer_type."
+                )
+            types.append(offer_type)
+
+        if len(types) != len(set(types)):
+            raise serializers.ValidationError("Each offer_type may only be used once.")
+
         if self.partial and self.instance:
             return value
+
         expected = list(OfferDetail.Types.values)
         if sorted(types) != sorted(expected):
             raise serializers.ValidationError("Provide basic, standard and premium.")
@@ -106,9 +118,7 @@ class OfferSerializer(serializers.ModelSerializer):
         )
 
     def update_details(self, offer, details):
-        existing_details = {
-            detail.offer_type: detail for detail in offer.details.all()
-        }
+        existing_details = {detail.offer_type: detail for detail in offer.details.all()}
 
         for detail_data in details:
             offer_type = detail_data["offer_type"]

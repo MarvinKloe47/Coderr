@@ -265,6 +265,59 @@ class OfferApiTests(APITestCase):
         self.assertEqual(detail.delivery_time_in_days, 2)
         self.assertEqual(offer.details.count(), 3)
 
+    def test_patch_offer_detail_requires_offer_type(self):
+        offer = self.create_offer()
+        self.client.force_authenticate(self.business)
+
+        response = self.client.patch(
+            reverse("offer-detail", args=[offer.pk]),
+            {"details": [{"price": "149.00"}]},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_patch_offer_detail_rejects_empty_offer_type(self):
+        offer = self.create_offer()
+        self.client.force_authenticate(self.business)
+
+        response = self.client.patch(
+            reverse("offer-detail", args=[offer.pk]),
+            {"details": [{"offer_type": "", "price": "149.00"}]},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_patch_offer_detail_rejects_unknown_offer_type(self):
+        offer = self.create_offer()
+        self.client.force_authenticate(self.business)
+
+        response = self.client.patch(
+            reverse("offer-detail", args=[offer.pk]),
+            {"details": [{"offer_type": "enterprise", "price": "149.00"}]},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_patch_offer_detail_rejects_duplicate_offer_type(self):
+        offer = self.create_offer()
+        self.client.force_authenticate(self.business)
+
+        response = self.client.patch(
+            reverse("offer-detail", args=[offer.pk]),
+            {
+                "details": [
+                    {"offer_type": "basic", "price": "149.00"},
+                    {"offer_type": "basic", "price": "159.00"},
+                ]
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_owner_can_delete_offer(self):
         offer = self.create_offer()
         self.client.force_authenticate(self.business)
