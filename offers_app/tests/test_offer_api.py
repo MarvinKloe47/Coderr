@@ -72,7 +72,23 @@ class OfferApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            set(response.data.keys()),
+            {"id", "title", "image", "description", "details"},
+        )
         self.assertEqual(len(response.data["details"]), 3)
+        self.assertEqual(
+            set(response.data["details"][0].keys()),
+            {
+                "id",
+                "title",
+                "revisions",
+                "delivery_time_in_days",
+                "price",
+                "features",
+                "offer_type",
+            },
+        )
         self.assertNotIn("offer", response.data["details"][0])
 
     def test_customer_cannot_create_offer(self):

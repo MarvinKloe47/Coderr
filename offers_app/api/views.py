@@ -6,7 +6,12 @@ from offers_app.models import Offer, OfferDetail
 
 from .filters import OfferFilter
 from .permissions import IsBusinessOrReadOnly, IsOfferOwnerOrReadOnly
-from .serializers import OfferDetailSerializer, OfferListSerializer, OfferSerializer
+from .serializers import (
+    OfferDetailSerializer,
+    OfferListSerializer,
+    OfferSerializer,
+    OfferWriteSerializer,
+)
 
 
 class OfferViewSet(viewsets.ModelViewSet):
@@ -32,6 +37,8 @@ class OfferViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return OfferListSerializer
+        if self.action in {"create", "update", "partial_update"}:
+            return OfferWriteSerializer
         return OfferSerializer
 
     def get_queryset(self):

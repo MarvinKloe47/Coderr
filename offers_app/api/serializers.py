@@ -141,3 +141,15 @@ class OfferListSerializer(OfferSerializer):
             "min_delivery_time",
             "user_details",
         ]
+
+
+class OfferWriteSerializer(OfferSerializer):
+    class Meta(OfferSerializer.Meta):
+        fields = [
+            "id",
+            "title",
+            "image",
+            "description",
+            "details",
+        ]
+        read_only_fields = ["id"]

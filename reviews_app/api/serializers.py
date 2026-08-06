@@ -34,6 +34,13 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Prevent more than one review per reviewer and business user."""
+        request = self.context.get("request")
+        if self.instance and request and request.method == "PATCH":
+            invalid_fields = set(request.data) - {"description", "rating"}
+            if invalid_fields:
+                raise serializers.ValidationError(
+                    "Only rating and description can be updated."
+                )
         business_user = attrs.get(
             "business_user", getattr(self.instance, "business_user", None)
         )

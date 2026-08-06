@@ -57,8 +57,26 @@ class OrderApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            set(response.data.keys()),
+            {
+                "id",
+                "customer_user",
+                "business_user",
+                "title",
+                "revisions",
+                "delivery_time_in_days",
+                "price",
+                "features",
+                "offer_type",
+                "status",
+                "created_at",
+                "updated_at",
+            },
+        )
         self.assertEqual(response.data["business_user"], self.business.pk)
         self.assertEqual(response.data["title"], "Basic Logo")
+        self.assertEqual(response.data["offer_type"], "basic")
 
     def test_business_cannot_create_order(self):
         self.client.force_authenticate(self.business)
@@ -79,7 +97,7 @@ class OrderApiTests(APITestCase):
             format="json",
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_rejects_invalid_status_value(self):
         order = self.create_order()
@@ -112,6 +130,23 @@ class OrderApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            set(response.data[0].keys()),
+            {
+                "id",
+                "customer_user",
+                "business_user",
+                "title",
+                "revisions",
+                "delivery_time_in_days",
+                "price",
+                "features",
+                "offer_type",
+                "status",
+                "created_at",
+                "updated_at",
+            },
+        )
 
     def test_third_party_cannot_retrieve_order(self):
         order = self.create_order()
@@ -133,6 +168,30 @@ class OrderApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["status"], "completed")
+
+    def test_rejects_non_status_order_patch_fields(self):
+        order = self.create_order()
+        self.client.force_authenticate(self.business)
+
+        response = self.client.patch(
+            reverse("order-detail", args=[order.pk]),
+            {"title": "Changed"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_staff_can_delete_order(self):
+        order = self.create_order()
+        admin = get_user_model().objects.create_superuser(
+            "admin", password="test-password"
+        )
+        self.client.force_authenticate(admin)
+
+        response = self.client.delete(reverse("order-detail", args=[order.pk]))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Order.objects.filter(pk=order.pk).exists())
 
     def test_customer_cannot_update_status(self):
         order = self.create_order()
@@ -157,4 +216,11 @@ class OrderApiTests(APITestCase):
         )
 
         self.assertEqual(open_response.data["order_count"], 1)
-        self.assertEqual(done_response.data["order_count"], 1)
+        self.assertEqual(done_response.data["completed_order_count"], 1)
+
+    def test_order_count_rejects_customer_user_id(self):
+        self.client.force_authenticate(self.customer)
+
+        response = self.client.get(reverse("order-count", args=[self.customer.pk]))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

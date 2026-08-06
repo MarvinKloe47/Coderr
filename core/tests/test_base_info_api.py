@@ -26,6 +26,15 @@ class BaseInfoApiTests(APITestCase):
         response = self.client.get(reverse("base-info"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(response.data.keys()),
+            {
+                "review_count",
+                "average_rating",
+                "business_profile_count",
+                "offer_count",
+            },
+        )
         self.assertEqual(response.data["offer_count"], 1)
         self.assertEqual(response.data["review_count"], 1)
         self.assertEqual(response.data["business_profile_count"], 1)

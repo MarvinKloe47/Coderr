@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 from offers_app.models import OfferDetail
 from orders_app.models import Order
@@ -6,6 +7,7 @@ from orders_app.models import Order
 
 class OrderSerializer(serializers.ModelSerializer):
     offer_detail_id = serializers.IntegerField(write_only=True, required=False)
+    offer_type = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -14,24 +16,28 @@ class OrderSerializer(serializers.ModelSerializer):
             "customer_user",
             "business_user",
             "offer_detail_id",
-            "created_at",
-            "status",
             "title",
-            "delivery_time_in_days",
             "revisions",
+            "delivery_time_in_days",
             "price",
             "features",
+            "offer_type",
+            "status",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = [
             "id",
             "customer_user",
             "business_user",
-            "created_at",
             "title",
-            "delivery_time_in_days",
             "revisions",
+            "delivery_time_in_days",
             "price",
             "features",
+            "offer_type",
+            "created_at",
+            "updated_at",
         ]
 
     def validate_status(self, value):
@@ -43,8 +49,24 @@ class OrderSerializer(serializers.ModelSerializer):
     def validate_offer_detail_id(self, value):
         """Reject orders for offer details that do not exist."""
         if not OfferDetail.objects.filter(pk=value).exists():
-            raise serializers.ValidationError("Offer detail not found.")
+            raise NotFound("Offer detail not found.")
         return value
+
+    def validate(self, attrs):
+        """Allow status-only PATCH requests for documented order updates."""
+        request = self.context.get("request")
+        if self.instance and request and request.method == "PATCH":
+            invalid_fields = set(request.data) - {"status"}
+            if invalid_fields:
+                raise serializers.ValidationError(
+                    "Only the status field can be updated."
+                )
+        return attrs
+
+    def get_offer_type(self, obj):
+        if obj.offer_detail_id:
+            return obj.offer_detail.offer_type
+        return ""
 
     def create(self, validated_data):
         """Create an order with immutable values from the chosen offer detail."""

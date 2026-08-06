@@ -49,6 +49,18 @@ class ReviewApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            set(response.data.keys()),
+            {
+                "id",
+                "business_user",
+                "reviewer",
+                "description",
+                "rating",
+                "created_at",
+                "updated_at",
+            },
+        )
         self.assertEqual(response.data["reviewer"], self.customer.pk)
 
     def test_business_cannot_create_review(self):
@@ -117,6 +129,18 @@ class ReviewApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            set(response.data[0].keys()),
+            {
+                "id",
+                "business_user",
+                "reviewer",
+                "description",
+                "rating",
+                "created_at",
+                "updated_at",
+            },
+        )
 
     def test_reviewer_can_update_review(self):
         review = create_review(self.customer, self.business)
@@ -130,6 +154,18 @@ class ReviewApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["rating"], 4)
+
+    def test_rejects_non_documented_review_patch_fields(self):
+        review = create_review(self.customer, self.business)
+        self.client.force_authenticate(self.customer)
+
+        response = self.client.patch(
+            reverse("review-detail", args=[review.pk]),
+            {"business_user": self.business.pk},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_other_customer_cannot_delete_review(self):
         review = Review.objects.create(
