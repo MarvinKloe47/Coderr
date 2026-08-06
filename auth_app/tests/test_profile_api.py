@@ -34,8 +34,29 @@ class ProfileApiTests(APITestCase):
         response = self.client.get(reverse("profile-detail", args=[self.business.pk]))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(response.data.keys()),
+            {
+                "user",
+                "username",
+                "first_name",
+                "last_name",
+                "email",
+                "file",
+                "location",
+                "tel",
+                "description",
+                "working_hours",
+                "type",
+                "created_at",
+            },
+        )
         self.assertEqual(response.data["user"], self.business.pk)
         self.assertEqual(response.data["type"], "business")
+        self.assertEqual(response.data["last_name"], "")
+        self.assertEqual(response.data["tel"], "")
+        self.assertEqual(response.data["description"], "")
+        self.assertEqual(response.data["working_hours"], "")
 
     def test_business_profile_list_returns_array(self):
         self.client.force_authenticate(self.customer)
@@ -43,6 +64,21 @@ class ProfileApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsInstance(response.data, list)
+        self.assertEqual(
+            set(response.data[0].keys()),
+            {
+                "user",
+                "username",
+                "first_name",
+                "last_name",
+                "file",
+                "location",
+                "tel",
+                "description",
+                "working_hours",
+                "type",
+            },
+        )
         self.assertEqual(response.data[0]["username"], "test_business")
 
     def test_customer_profile_list_returns_customers_only(self):
@@ -51,6 +87,18 @@ class ProfileApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            set(response.data[0].keys()),
+            {
+                "user",
+                "username",
+                "first_name",
+                "last_name",
+                "file",
+                "uploaded_at",
+                "type",
+            },
+        )
         self.assertEqual(response.data[0]["type"], "customer")
 
     def test_owner_can_patch_profile(self):

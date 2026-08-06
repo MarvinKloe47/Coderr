@@ -72,9 +72,8 @@ class OfferApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["user"], self.business.pk)
         self.assertEqual(len(response.data["details"]), 3)
-        self.assertEqual(response.data["min_delivery_time"], 3)
+        self.assertNotIn("offer", response.data["details"][0])
 
     def test_customer_cannot_create_offer(self):
         self.client.force_authenticate(self.customer)
@@ -107,7 +106,6 @@ class OfferApiTests(APITestCase):
     def test_list_filters_by_creator_and_search(self):
         self.create_offer(title="Logo Design")
         self.create_offer(owner=self.other, title="Backend API")
-        self.client.force_authenticate(self.customer)
 
         response = self.client.get(
             reverse("offer-list"),
@@ -116,7 +114,51 @@ class OfferApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
+        self.assertEqual(
+            set(response.data["results"][0].keys()),
+            {
+                "id",
+                "user",
+                "title",
+                "image",
+                "description",
+                "created_at",
+                "updated_at",
+                "details",
+                "min_price",
+                "min_delivery_time",
+                "user_details",
+            },
+        )
+        self.assertEqual(
+            set(response.data["results"][0]["details"][0].keys()),
+            {"id", "url"},
+        )
+        self.assertEqual(
+            set(response.data["results"][0]["user_details"].keys()),
+            {"first_name", "last_name", "username"},
+        )
         self.assertEqual(response.data["results"][0]["title"], "Logo Design")
+
+    def test_public_offer_list_supports_filters_ordering_and_page_size(self):
+        self.create_offer(title="Logo Design")
+        self.create_offer(owner=self.other, title="Backend API")
+
+        response = self.client.get(
+            reverse("offer-list"),
+            {
+                "creator_id": self.business.pk,
+                "min_price": "99.00",
+                "max_delivery_time": 3,
+                "search": "Logo",
+                "ordering": "min_price",
+                "page_size": 1,
+                "page": 1,
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 1)
 
     def test_offer_detail_endpoint_returns_detail(self):
         offer = self.create_offer()
@@ -126,7 +168,34 @@ class OfferApiTests(APITestCase):
         response = self.client.get(reverse("offerdetail-detail", args=[detail.pk]))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(response.data.keys()),
+            {
+                "id",
+                "title",
+                "revisions",
+                "delivery_time_in_days",
+                "price",
+                "features",
+                "offer_type",
+            },
+        )
         self.assertEqual(response.data["offer_type"], "premium")
+
+    def test_offer_detail_endpoint_requires_authentication(self):
+        offer = self.create_offer()
+        detail = offer.details.get(offer_type="premium")
+
+        response = self.client.get(reverse("offerdetail-detail", args=[detail.pk]))
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_offer_retrieve_requires_authentication(self):
+        offer = self.create_offer()
+
+        response = self.client.get(reverse("offer-detail", args=[offer.pk]))
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_only_owner_can_update_offer(self):
         offer = self.create_offer()

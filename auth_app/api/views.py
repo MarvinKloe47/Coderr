@@ -4,7 +4,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .permissions import IsProfileOwnerOrReadOnly
-from .serializers import LoginSerializer, ProfileSerializer, RegistrationSerializer
+from .serializers import (
+    BusinessProfileSerializer,
+    CustomerProfileSerializer,
+    LoginSerializer,
+    ProfileSerializer,
+    RegistrationSerializer,
+)
 
 
 class RegistrationView(generics.CreateAPIView):
@@ -49,7 +55,7 @@ class ProfileViewSet(
 class BusinessProfileListView(generics.ListAPIView):
     """List profiles for users with the business role."""
 
-    serializer_class = ProfileSerializer
+    serializer_class = BusinessProfileSerializer
     pagination_class = None
 
     def get_queryset(self):
@@ -59,7 +65,7 @@ class BusinessProfileListView(generics.ListAPIView):
 class CustomerProfileListView(generics.ListAPIView):
     """List profiles for users with the customer role."""
 
-    serializer_class = ProfileSerializer
+    serializer_class = CustomerProfileSerializer
     pagination_class = None
 
     def get_queryset(self):

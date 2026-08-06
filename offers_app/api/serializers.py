@@ -1,4 +1,5 @@
 from django.db import transaction
+from rest_framework.reverse import reverse
 from rest_framework import serializers
 
 from offers_app.models import Offer, OfferDetail
@@ -9,7 +10,6 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         model = OfferDetail
         fields = [
             "id",
-            "offer",
             "title",
             "revisions",
             "delivery_time_in_days",
@@ -17,7 +17,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             "features",
             "offer_type",
         ]
-        read_only_fields = ["id", "offer"]
+        read_only_fields = ["id"]
 
     def validate_features(self, value):
         """Require at least one non-empty feature per offer package."""
@@ -103,3 +103,41 @@ class OfferSerializer(serializers.ModelSerializer):
         OfferDetail.objects.bulk_create(
             [OfferDetail(offer=offer, **detail) for detail in details]
         )
+
+
+class OfferDetailLinkSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OfferDetail
+        fields = ["id", "url"]
+
+    def get_url(self, obj):
+        request = self.context.get("request")
+        return reverse("offerdetail-detail", args=[obj.pk], request=request)
+
+
+class OfferUserDetailsSerializer(serializers.Serializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    username = serializers.CharField()
+
+
+class OfferListSerializer(OfferSerializer):
+    details = OfferDetailLinkSerializer(many=True, read_only=True)
+    user_details = OfferUserDetailsSerializer(source="user", read_only=True)
+
+    class Meta(OfferSerializer.Meta):
+        fields = [
+            "id",
+            "user",
+            "title",
+            "image",
+            "description",
+            "created_at",
+            "updated_at",
+            "details",
+            "min_price",
+            "min_delivery_time",
+            "user_details",
+        ]

@@ -25,9 +25,15 @@ class RegistrationApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            set(response.data.keys()),
+            {"token", "username", "email", "user_id"},
+        )
         self.assertEqual(response.data["username"], "test_customer")
+        self.assertEqual(response.data["email"], "customer@example.com")
         self.assertIn("token", response.data)
         user = get_user_model().objects.get(username="test_customer")
+        self.assertEqual(response.data["user_id"], user.pk)
         self.assertTrue(user.check_password("test-password"))
 
     def test_register_rejects_password_mismatch(self):
@@ -71,8 +77,13 @@ class LoginApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(response.data.keys()),
+            {"token", "username", "email", "user_id"},
+        )
         self.assertEqual(response.data["user_id"], self.user.pk)
         self.assertEqual(response.data["username"], "test_business")
+        self.assertEqual(response.data["email"], "business@example.com")
         self.assertIn("token", response.data)
 
     def test_login_rejects_wrong_password(self):

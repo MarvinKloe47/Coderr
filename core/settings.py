@@ -128,8 +128,9 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "core.pagination.PageSizePagination",
     "PAGE_SIZE": 6,
+    "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%SZ",
 }
 
 CORS_ALLOWED_ORIGINS = env_list(

@@ -1,23 +1,38 @@
 from django.db.models import Min
 from rest_framework import mixins, viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from offers_app.models import Offer, OfferDetail
 
 from .filters import OfferFilter
 from .permissions import IsBusinessOrReadOnly, IsOfferOwnerOrReadOnly
-from .serializers import OfferDetailSerializer, OfferSerializer
+from .serializers import OfferDetailSerializer, OfferListSerializer, OfferSerializer
 
 
 class OfferViewSet(viewsets.ModelViewSet):
     """Manage offers and expose documented filtering, search and ordering."""
 
-    permission_classes = [IsAuthenticated, IsBusinessOrReadOnly, IsOfferOwnerOrReadOnly]
     serializer_class = OfferSerializer
     filterset_class = OfferFilter
     search_fields = ["title", "description"]
-    ordering_fields = ["updated_at", "min_price", "min_delivery_time"]
+    ordering_fields = ["updated_at", "min_price"]
     ordering = ["-updated_at", "id"]
+
+    def get_permissions(self):
+        if self.action == "list":
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [
+                IsAuthenticated,
+                IsBusinessOrReadOnly,
+                IsOfferOwnerOrReadOnly,
+            ]
+        return [permission() for permission in permission_classes]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return OfferListSerializer
+        return OfferSerializer
 
     def get_queryset(self):
         """Load offers with owner, details and aggregate values efficiently."""
@@ -38,5 +53,6 @@ class OfferDetailViewSet(
 ):
     """Expose a read-only endpoint for a single offer package."""
 
+    permission_classes = [IsAuthenticated]
     serializer_class = OfferDetailSerializer
     queryset = OfferDetail.objects.select_related("offer", "offer__user")

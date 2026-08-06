@@ -8,8 +8,9 @@ def build_auth_payload(user):
     token, _ = Token.objects.get_or_create(user=user)
     return {
         "token": token.key,
-        "user_id": user.pk,
         "username": user.username,
+        "email": user.email,
+        "user_id": user.pk,
     }
 
 
@@ -102,3 +103,34 @@ class ProfileSerializer(serializers.ModelSerializer):
             for field in ["location", "tel", "description", "working_hours"]:
                 validated_data.pop(field, None)
         return super().update(instance, validated_data)
+
+
+class BusinessProfileSerializer(ProfileSerializer):
+    class Meta(ProfileSerializer.Meta):
+        fields = [
+            "user",
+            "username",
+            "first_name",
+            "last_name",
+            "file",
+            "location",
+            "tel",
+            "description",
+            "working_hours",
+            "type",
+        ]
+
+
+class CustomerProfileSerializer(ProfileSerializer):
+    uploaded_at = serializers.DateTimeField(source="created_at", read_only=True)
+
+    class Meta(ProfileSerializer.Meta):
+        fields = [
+            "user",
+            "username",
+            "first_name",
+            "last_name",
+            "file",
+            "uploaded_at",
+            "type",
+        ]
