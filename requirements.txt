@@ -1,0 +1,5 @@
+Django==6.0.7
+django-cors-headers==4.9.0
+django-filter==26.1
+djangorestframework==3.17.1
+Pillow==12.3.0
