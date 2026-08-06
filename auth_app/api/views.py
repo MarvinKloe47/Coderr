@@ -44,13 +44,6 @@ class ProfileViewSet(
     queryset = get_user_model().objects.all().order_by("username")
     lookup_field = "id"
 
-    def partial_update(self, request, *args, **kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
 
 class BusinessProfileListView(generics.ListAPIView):
     """List profiles for users with the business role."""
