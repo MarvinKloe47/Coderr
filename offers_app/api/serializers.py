@@ -1,6 +1,6 @@
 from django.db import transaction
-from rest_framework.reverse import reverse
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from offers_app.models import Offer, OfferDetail
 
