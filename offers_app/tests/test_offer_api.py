@@ -239,6 +239,32 @@ class OfferApiTests(APITestCase):
         self.assertEqual(response.data["title"], "Updated")
         self.assertEqual(offer.details.get(offer_type="basic").price, 149)
 
+    def test_owner_can_patch_single_offer_detail_by_offer_type(self):
+        offer = self.create_offer()
+        detail = offer.details.get(offer_type="basic")
+        self.client.force_authenticate(self.business)
+
+        response = self.client.patch(
+            reverse("offer-detail", args=[offer.pk]),
+            {
+                "details": [
+                    {
+                        "offer_type": "basic",
+                        "price": "149.00",
+                        "delivery_time_in_days": 2,
+                    }
+                ]
+            },
+            format="json",
+        )
+
+        detail.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail.pk, offer.details.get(offer_type="basic").pk)
+        self.assertEqual(detail.price, 149)
+        self.assertEqual(detail.delivery_time_in_days, 2)
+        self.assertEqual(offer.details.count(), 3)
+
     def test_owner_can_delete_offer(self):
         offer = self.create_offer()
         self.client.force_authenticate(self.business)

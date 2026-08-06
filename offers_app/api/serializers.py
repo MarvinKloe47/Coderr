@@ -58,6 +58,8 @@ class OfferSerializer(serializers.ModelSerializer):
     def validate_details(self, value):
         """Require exactly the basic, standard and premium packages."""
         types = [item["offer_type"] for item in value]
+        if self.partial and self.instance:
+            return value
         expected = list(OfferDetail.Types.values)
         if sorted(types) != sorted(expected):
             raise serializers.ValidationError("Provide basic, standard and premium.")
@@ -91,18 +93,29 @@ class OfferSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        """Replace nested details only when the request includes them."""
+        """Update nested details by offer_type without replacing their rows."""
         details = validated_data.pop("details", None)
         offer = super().update(instance, validated_data)
         if details is not None:
-            offer.details.all().delete()
-            self.save_details(offer, details)
+            self.update_details(offer, details)
         return offer
 
     def save_details(self, offer, details):
         OfferDetail.objects.bulk_create(
             [OfferDetail(offer=offer, **detail) for detail in details]
         )
+
+    def update_details(self, offer, details):
+        existing_details = {
+            detail.offer_type: detail for detail in offer.details.all()
+        }
+
+        for detail_data in details:
+            offer_type = detail_data["offer_type"]
+            detail = existing_details[offer_type]
+            for field, value in detail_data.items():
+                setattr(detail, field, value)
+            detail.save()
 
 
 class OfferDetailLinkSerializer(serializers.ModelSerializer):
