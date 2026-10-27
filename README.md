@@ -1,5 +1,9 @@
 # Coderr Backend
 
+**Live demo:** https://marvincooper7.eu.pythonanywhere.com/
+
+This is a public portfolio demonstration using sample data. No real services or payments are offered. The frontend is provided by Developer Akademie; this repository contains the independently implemented Django backend.
+
 Coderr is a Django and Django REST Framework backend for a service marketplace
 where business users publish offers and customer users order packages and write
 reviews.
